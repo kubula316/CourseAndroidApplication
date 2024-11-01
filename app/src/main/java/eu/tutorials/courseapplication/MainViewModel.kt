@@ -2,6 +2,7 @@ package eu.tutorials.courseapplication
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.tutorials.courseapplication.service.studentService
@@ -20,6 +21,8 @@ class MainViewModel : ViewModel() {
         validateStudent(email, password)
     }
 
+
+
     private fun validateStudent(email: String, password: String){
         viewModelScope.launch {
             try {
@@ -32,7 +35,7 @@ class MainViewModel : ViewModel() {
 
                 println(_authToken.value)
                 loadCourses()
-                _coursesState.value = _coursesState.value.copy(loading = false,)
+                _coursesState.value = _coursesState.value.copy(loading = false, isAuthenticated = true)
 
             } catch (e : Exception){
                 _coursesState.value = _coursesState.value.copy(
@@ -63,5 +66,14 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    data class CoursesState(val loading: Boolean = false, val list: List<Course> = emptyList(), val error:String? = null, ){}
+    fun changeItemIndex(index: Int) {
+        _coursesState.value = _coursesState.value.copy(selectedItemIndex = index)
+    }
+
+    data class CoursesState(val loading: Boolean = false,
+                            val list: List<Course> = emptyList(),
+                            val error:String? = null,
+                            val selectedItemIndex: Int = 0,
+                            val isAuthenticated: Boolean = false
+        ){}
 }
