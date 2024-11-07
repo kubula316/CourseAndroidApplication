@@ -2,13 +2,14 @@ package eu.tutorials.courseapplication
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.tutorials.courseapplication.service.studentService
 import kotlinx.coroutines.launch
 import eu.tutorials.courseapplication.service.AuthRequest
 import eu.tutorials.courseapplication.service.courseService
+import com.auth0.android.jwt.JWT
+
 
 class MainViewModel : ViewModel() {
     private val _coursesState = mutableStateOf(CoursesState())
@@ -22,6 +23,13 @@ class MainViewModel : ViewModel() {
     }
 
 
+    private suspend fun loadStudentData(id: Long) {
+        val token = "Bearer ${_authToken.value}"
+        val student : Student = studentService.getStudentData(id, token)
+        _coursesState.value = _coursesState.value.copy(studentDetails = student)
+        val savedCourses :List<Course> = courseService.getSavedCourses(_coursesState.value.studentDetails.enrolledCourses, token)
+        _coursesState.value = _coursesState.value.copy(savedCourses= savedCourses)
+    }
 
     private fun validateStudent(email: String, password: String){
         viewModelScope.launch {
@@ -33,8 +41,12 @@ class MainViewModel : ViewModel() {
 
                 _authToken.value = response.token
 
-                println(_authToken.value)
-                loadCourses()
+                val jwt: JWT = JWT(_authToken.value!!)
+                val id: Long = jwt.getClaim("id").asLong()!!
+
+
+                loadStudentData(id)
+                loadCoursesDto()
                 _coursesState.value = _coursesState.value.copy(loading = false, isAuthenticated = true)
 
             } catch (e : Exception){
@@ -45,17 +57,57 @@ class MainViewModel : ViewModel() {
             }
         }
     }
-    fun loadCourses(){
-        fetchCourses()
+
+    fun loadCoursesDto(){
+        fetchCoursesDto()
     }
 
-    private fun fetchCourses(){
+    private fun fetchCoursesDto(){
         viewModelScope.launch{
             try{
                 val token = "Bearer ${_authToken.value}"
                 _coursesState.value = _coursesState.value.copy(loading = true,)
-                val response = courseService.getAllCourses(token)
+                val response = courseService.getAllCoursesDto(token)
                 _coursesState.value = _coursesState.value.copy(loading = false, list = response)
+
+            }catch (e : Exception){
+                _coursesState.value = _coursesState.value.copy(
+                    loading = false,
+                    error = "LoginError, ${e.message}"
+                )
+            }
+        }
+    }
+
+    fun loadCourse(courseId : String){
+        fetchCourse(courseId)
+    }
+
+    private fun fetchCourse(courseId: String) {
+        viewModelScope.launch{
+            try{
+                val token = "Bearer ${_authToken.value}"
+                _coursesState.value = _coursesState.value.copy(loading = true,)
+
+                val response = courseService.getCourse(courseId, token)
+                _coursesState.value = _coursesState.value.copy(loading = false, courseDetails = response)
+
+            }catch (e : Exception){
+                _coursesState.value = _coursesState.value.copy(
+                    loading = false,
+                    error = "LoginError, ${e.message}"
+                )
+            }
+        }
+    }
+
+    fun searchCoursesByTagsOrName(searchQuerry: String) {
+        viewModelScope.launch{
+            try{
+                val token = "Bearer ${_authToken.value}"
+                _coursesState.value = _coursesState.value.copy(loading = true,)
+                val response = courseService.getCoursesByTagsOrName(searchQuerry, token)
+                _coursesState.value = _coursesState.value.copy(loading = false, searchedCourses = response)
 
             }catch (e : Exception){
                 _coursesState.value = _coursesState.value.copy(
@@ -70,10 +122,62 @@ class MainViewModel : ViewModel() {
         _coursesState.value = _coursesState.value.copy(selectedItemIndex = index)
     }
 
+    fun changeLookingAtDetails(boolean: Boolean){
+        _coursesState.value = _coursesState.value.copy(lookingAtDetails = boolean)
+    }
+
+    fun logout() {
+        _coursesState.value = _coursesState.value.copy(isAuthenticated = false, lookingAtDetails = false, selectedItemIndex = 0,
+            studentDetails = Student(
+            id = 0,
+            firstName = "placeholder",
+            lastName = "placeholder",
+            email = "placeholder",
+            status = Status.ACTIVE,
+            enrolledCourses = emptyList(),
+            profileImageUrl = "https://coursesapp.blob.core.windows.net/student-profile-image-container/BlankProfile.png"
+        ))
+        _authToken.value = ""
+    }
+
+    fun updateSearchQuery(text: String) {
+        _coursesState.value = _coursesState.value.copy(searchQuerry = text)
+    }
+
+
+
     data class CoursesState(val loading: Boolean = false,
-                            val list: List<Course> = emptyList(),
+                            val list: List<CourseDto> = emptyList(),
                             val error:String? = null,
                             val selectedItemIndex: Int = 0,
-                            val isAuthenticated: Boolean = false
+                            val isAuthenticated: Boolean = false,
+                            val lookingAtDetails: Boolean = false,
+                            val courseDetails : Course = Course(
+                                code = "placeholder",
+                                status = Status.ACTIVE,
+                                name = "placeholder",
+                                description = "placeholder",
+                                author = "placehodler",
+                                startDate = "placeholder",
+                                endDate = "placeholder",
+                                participantsNumber = 0,
+                                participantsLimit = 0,
+                                participants = emptyList(),
+                                category = Category.MUSIC,
+                                tags = emptyList(),
+                                imageUrl = "placeholder"
+                            ),
+                            val studentDetails : Student = Student(
+                                id = 0,
+                                firstName = "placeholder",
+                                lastName = "placeholder",
+                                email = "placeholder",
+                                status = Status.ACTIVE,
+                                enrolledCourses = emptyList(),
+                                profileImageUrl = "https://coursesapp.blob.core.windows.net/student-profile-image-container/BlankProfile.png"
+                            ),
+                            val savedCourses: List<Course> = emptyList(),
+                            val searchedCourses: List<CourseDto> = emptyList(),
+                            val searchQuerry : String = ""
         ){}
 }

@@ -1,11 +1,12 @@
 package eu.tutorials.courseapplication.navigation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
@@ -17,20 +18,32 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import eu.tutorials.courseapplication.MainViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.toRoute
+import eu.tutorials.courseapplication.Course
+import eu.tutorials.courseapplication.Status
+import eu.tutorials.courseapplication.screens.CourseDetailsScreen
 import eu.tutorials.courseapplication.screens.CoursesScreen
 import eu.tutorials.courseapplication.screens.LoginScreen
+import eu.tutorials.courseapplication.screens.ProfileScreen
+import eu.tutorials.courseapplication.screens.SavedCoursesScreen
+import eu.tutorials.courseapplication.screens.SearchScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,35 +53,40 @@ fun AppNav(){
     val viewState by courseViewModel.coursesState
     val items = listOf(
         BottomNavigationItem(
-        title = "Home",
-        selectedIcon = Icons.Filled.Home,
-        unselectedIcon = Icons.Default.Home,
-        hasNotification = false,
-        badgeCount = null
+            title = "Home",
+            selectedIcon = Icons.Filled.Home,
+            unselectedIcon = Icons.Default.Home,
+            hasNotification = false,
+            badgeCount = null,
+            onClickAction = {navController.navigate(CoursesScreen)}
         ),
         BottomNavigationItem(
             title = "Search",
             selectedIcon = Icons.Filled.Search,
             unselectedIcon = Icons.Default.Search,
             hasNotification = false,
-            badgeCount = null
+            badgeCount = null,
+            onClickAction = {navController.navigate(SearchScreen)}
         ),
         BottomNavigationItem(
             title = "Saved",
             selectedIcon = Icons.Filled.Create,
             unselectedIcon = Icons.Default.Create,
             hasNotification = false,
-            badgeCount = null
+            badgeCount = null,
+            onClickAction = {navController.navigate(SavedCoursesScreen)}
         ),
         BottomNavigationItem(
             title = "Account",
             selectedIcon = Icons.Filled.AccountCircle,
             unselectedIcon = Icons.Default.AccountCircle,
             hasNotification = false,
-            badgeCount = null
+            badgeCount = null,
+            onClickAction = {navController.navigate(ProfileScreen)}
         )
 
     )
+    var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
 
     Scaffold(
         bottomBar = {if (viewState.isAuthenticated)
@@ -76,7 +94,8 @@ fun AppNav(){
                 items.forEachIndexed { index, item -> 
                     NavigationBarItem(
                         selected = viewState.selectedItemIndex == index,
-                        onClick = { courseViewModel.changeItemIndex(index)},
+                        onClick = { courseViewModel.changeItemIndex(index)
+                                    item.onClickAction.invoke()},
                         label = { Text(text = item.title)},
                         icon = { BadgedBox(badge = {
                             if (item.badgeCount != null){
@@ -93,17 +112,45 @@ fun AppNav(){
         },
         topBar = {if (viewState.isAuthenticated)
             TopAppBar(
-                title = { Text(text = items[viewState.selectedItemIndex].title)},
-                navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Go back"
+                title = {
+                    if (viewState.selectedItemIndex == 1) { // Check if the selected item is the Search screen
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = {
+                                searchQuery = it
+                                courseViewModel.updateSearchQuery(it.text)
+                            },
+                            placeholder = { Text("Search courses") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
+                            singleLine = true,
+                            leadingIcon = {
+                                Icon(imageVector = Icons.Filled.Search, contentDescription = "Search", modifier = Modifier.clickable { courseViewModel.searchCoursesByTagsOrName(viewState.searchQuerry) })
+                            }
                         )
+                    } else if (!viewState.lookingAtDetails){
+                    Text(text = items[viewState.selectedItemIndex].title)
+                }
+
+                        },
+                navigationIcon = {
+                    if (viewState.lookingAtDetails){
+                        IconButton(onClick = {
+                            navController.navigate(CoursesScreen)
+                            courseViewModel.changeLookingAtDetails(false)
+                            courseViewModel.changeItemIndex(0)
+
+                        }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Go back"
+                            )
+                        }
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = { courseViewModel.loadCoursesDto()}) {
                         Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh")
                     }
                 }
@@ -128,9 +175,49 @@ fun AppNav(){
                         .fillMaxSize()
                         .padding(paddingValues),
                     viewState = viewState,
-                    onCourseClick = {
-                    println("GOTODETAILS")
+                    onCourseClick = {course ->
+                        courseViewModel.loadCourse(courseId = course.code)
+                    navController.navigate(CourseDetailsScreen)
+                courseViewModel.changeLookingAtDetails(true)
                 })
+            }
+            composable<CourseDetailsScreen> {
+                val args = it.toRoute<CourseDetailsScreen>()
+                CourseDetailsScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    viewState = viewState,
+                    args = args)
+            }
+            composable<SearchScreen> {
+                SearchScreen(
+                   modifier = Modifier.fillMaxSize().padding(paddingValues),
+                    onCourseClick = {},
+                    viewState = viewState
+                )
+            }
+            composable<SavedCoursesScreen> {
+                SavedCoursesScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    onCourseClick = {},
+                    viewState = viewState
+                )
+            }
+            composable<ProfileScreen> {
+                ProfileScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    viewState = viewState,
+                    onLogoutClick = {
+                        navController.navigate(LoginScreen){
+                            popUpTo(LoginScreen)
+                        }
+                        courseViewModel.logout()
+                    })
             }
 
         }

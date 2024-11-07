@@ -65,6 +65,8 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.0")
     //Data serialization
     implementation(libs.kotlinx.serialization.json)
+    //jwt decoder
+    implementation("com.auth0.android:jwtdecode:2.0.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

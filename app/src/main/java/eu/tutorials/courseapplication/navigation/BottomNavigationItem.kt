@@ -1,5 +1,6 @@
 package eu.tutorials.courseapplication.navigation
 
+import android.service.autofill.OnClickAction
 import androidx.compose.ui.graphics.vector.ImageVector
 
 data class BottomNavigationItem(
@@ -8,6 +9,7 @@ data class BottomNavigationItem(
     val unselectedIcon: ImageVector,
     val hasNotification: Boolean,
     val badgeCount: Int? = null,
+    val onClickAction: ()-> Unit
 )
 
 

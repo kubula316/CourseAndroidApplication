@@ -13,8 +13,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,15 +26,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import coil.size.Size
 import eu.tutorials.courseapplication.Course
 import eu.tutorials.courseapplication.CourseDto
 import eu.tutorials.courseapplication.MainViewModel
 
 @Composable
-fun CoursesScreen(
+fun SavedCoursesScreen(
     modifier: Modifier = Modifier,
-    onCourseClick: (CourseDto) -> Unit,
+    onCourseClick: (Course) -> Unit,
     viewState: MainViewModel.CoursesState
 ){
     Box(modifier = modifier){
@@ -47,24 +44,25 @@ fun CoursesScreen(
                 println(viewState.error)
             }
             else -> {
-                CoursesShowScreen(courses = viewState.list, onCourseClick)
+                ShowSavedCoursesScreen(courses = viewState.savedCourses, onCourseClick)
             }
         }
     }
 }
 
 @Composable
-fun CoursesShowScreen(courses: List<CourseDto>, onCategoryClick:(CourseDto) -> Unit) {
-    LazyVerticalGrid(GridCells.Fixed(2), modifier = Modifier
+fun ShowSavedCoursesScreen(courses: List<Course>, onCategoryClick:(Course) -> Unit) {
+    LazyVerticalGrid(
+        GridCells.Fixed(1), modifier = Modifier
         .fillMaxSize()) {
         items(courses){
-                course -> CourseItem(course = course, onCategoryClick)
+                course -> SavedCourseItem(course = course, onCategoryClick)
         }
     }
 }
 
 @Composable
-fun CourseItem(course: CourseDto, onCategoryClick: (CourseDto) -> Unit) {
+fun SavedCourseItem(course: Course, onCategoryClick: (Course) -> Unit) {
     Column(
         modifier = Modifier
             .padding(4.dp)
@@ -106,18 +104,19 @@ fun CourseItem(course: CourseDto, onCategoryClick: (CourseDto) -> Unit) {
                     .padding(top = 2.dp)
             )
         }
-            Text(
-                text = "Members: ${course.participantsNumber}/${course.participantsLimit}",
-                color = if (course.participantsNumber < course.participantsLimit){Color.Green} else Color.Red,
-                style = TextStyle(
-                    fontWeight = FontWeight.Light,
-                    textAlign = TextAlign.Left,
-                    fontSize = 16.sp
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 2.dp)
-                )
+        Text(
+            text = "Members: ${course.participantsNumber}/${course.participantsLimit}",
+            color = if (course.participantsNumber < course.participantsLimit){
+                Color.Green} else Color.Red,
+            style = TextStyle(
+                fontWeight = FontWeight.Light,
+                textAlign = TextAlign.Left,
+                fontSize = 16.sp
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 2.dp)
+        )
 
 
     }
