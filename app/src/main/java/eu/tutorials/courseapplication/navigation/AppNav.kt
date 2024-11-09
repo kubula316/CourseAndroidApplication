@@ -44,6 +44,7 @@ import eu.tutorials.courseapplication.screens.LoginScreen
 import eu.tutorials.courseapplication.screens.ProfileScreen
 import eu.tutorials.courseapplication.screens.SavedCoursesScreen
 import eu.tutorials.courseapplication.screens.SearchScreen
+import eu.tutorials.courseapplication.screens.SearchTagScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,7 +127,10 @@ fun AppNav(){
                                 .padding(horizontal = 8.dp),
                             singleLine = true,
                             leadingIcon = {
-                                Icon(imageVector = Icons.Filled.Search, contentDescription = "Search", modifier = Modifier.clickable { courseViewModel.searchCoursesByTagsOrName(viewState.searchQuerry) })
+                                Icon(imageVector = Icons.Filled.Search, contentDescription = "Search", modifier = Modifier.clickable {
+                                    courseViewModel.searchCoursesByTagsOrName(viewState.searchQuerry)
+                                    navController.navigate(SearchTagScreen)
+                                })
                             }
                         )
                     } else if (!viewState.lookingAtDetails){
@@ -217,6 +221,18 @@ fun AppNav(){
                             popUpTo(LoginScreen)
                         }
                         courseViewModel.logout()
+                    })
+            }
+            composable<SearchTagScreen>{
+                SearchTagScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    viewState = viewState,
+                    onCourseClick = {course ->
+                        courseViewModel.loadCourse(courseId = course.code)
+                        navController.navigate(CourseDetailsScreen)
+                        courseViewModel.changeLookingAtDetails(true)
                     })
             }
 

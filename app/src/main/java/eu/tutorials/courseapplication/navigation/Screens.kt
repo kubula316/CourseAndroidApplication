@@ -26,3 +26,6 @@ object SavedCoursesScreen
 
 @Serializable
 object SearchScreen
+
+@Serializable
+object SearchTagScreen
