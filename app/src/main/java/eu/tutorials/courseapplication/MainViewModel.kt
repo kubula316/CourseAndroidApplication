@@ -118,6 +118,23 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun searchCoursesByCategory(category: String) {
+        viewModelScope.launch{
+            try{
+                val token = "Bearer ${_authToken.value}"
+                _coursesState.value = _coursesState.value.copy(loading = true,)
+                val response = courseService.getCoursesByCategory(category, token)
+                _coursesState.value = _coursesState.value.copy(loading = false, searchedCourses = response)
+
+            }catch (e : Exception){
+                _coursesState.value = _coursesState.value.copy(
+                    loading = false,
+                    error = "LoginError, ${e.message}"
+                )
+            }
+        }
+    }
+
     fun changeItemIndex(index: Int) {
         _coursesState.value = _coursesState.value.copy(selectedItemIndex = index)
     }

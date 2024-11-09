@@ -33,4 +33,7 @@ interface CourseService{
     @GET("courses/search")
     suspend fun getCoursesByTagsOrName(@Query("searchTerm") searchTerm : String ,@Header("Authorization") token: String): List<CourseDto>
 
+    @GET("courses/search/category")
+    suspend fun getCoursesByCategory(@Query("category") searchTerm : String ,@Header("Authorization") token: String): List<CourseDto>
+
 }

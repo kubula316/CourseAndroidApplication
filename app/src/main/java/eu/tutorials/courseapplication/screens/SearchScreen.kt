@@ -40,10 +40,9 @@ import java.util.Locale
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
-    onCourseClick: () -> Unit,
+    onCategoryClick: (String) -> Unit,
     viewState: MainViewModel.CoursesState
 ){
-    var isTagChosen : Boolean = false
     Box(modifier = modifier){
         when{
             viewState.loading -> { CircularProgressIndicator(modifier.align((Alignment.Center)))
@@ -52,14 +51,14 @@ fun SearchScreen(
                 println(viewState.error)
             }
             else -> {
-                SearchShowScreen(onCourseClick)
+                SearchShowScreen(onCategoryClick)
             }
         }
     }
 }
 
 @Composable
-fun SearchShowScreen(onCategoryClick: () -> Unit) {
+fun SearchShowScreen(onCategoryClick: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -90,7 +89,7 @@ fun SearchShowScreen(onCategoryClick: () -> Unit) {
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                             shape = RoundedCornerShape(12.dp)
                         )
-                        .clickable { onCategoryClick() }
+                        .clickable { onCategoryClick(course.name) }
                         .padding(16.dp)
                 ) {
                     Text(

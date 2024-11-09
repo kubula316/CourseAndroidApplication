@@ -197,7 +197,11 @@ fun AppNav(){
             composable<SearchScreen> {
                 SearchScreen(
                    modifier = Modifier.fillMaxSize().padding(paddingValues),
-                    onCourseClick = {},
+                    onCategoryClick =  {category ->
+                        courseViewModel.searchCoursesByCategory(category)
+                        navController.navigate(SearchTagScreen)
+                        courseViewModel.changeLookingAtDetails(true)
+                    },
                     viewState = viewState
                 )
             }
