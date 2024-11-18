@@ -67,6 +67,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     //jwt decoder
     implementation("com.auth0.android:jwtdecode:2.0.0")
+    //video
+
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

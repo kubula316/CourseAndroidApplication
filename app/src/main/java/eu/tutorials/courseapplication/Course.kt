@@ -27,7 +27,25 @@ data class Course(val code : String,
                   val participants: List<CourseMember>,
                   val category: Category,
                   val tags : List<String>,
-                  val imageUrl: String
+                  val imageUrl: String,
+    val sections: List<Section>
+)
+
+@Serializable
+data class Section(
+    val title: String,
+    val position : Int,
+    val lessons : List<Lecture>
+)
+
+@Serializable
+data class Lecture(
+    val id: Long,
+    val title:String,
+    val videoUrl:String,
+    val description: String,
+    val materialsUrls: List<String>,
+    val position:Int
 )
 
 data class Student(

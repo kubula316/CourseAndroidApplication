@@ -161,6 +161,9 @@ class MainViewModel : ViewModel() {
         _coursesState.value = _coursesState.value.copy(searchQuerry = text)
     }
 
+    fun loadCourseFromView(course: Course) {
+        _coursesState.value = _coursesState.value.copy(loading = false, courseDetails = course)
+    }
 
 
     data class CoursesState(val loading: Boolean = false,
@@ -182,7 +185,8 @@ class MainViewModel : ViewModel() {
                                 participants = emptyList(),
                                 category = Category.MUSIC,
                                 tags = emptyList(),
-                                imageUrl = "placeholder"
+                                imageUrl = "placeholder",
+                                sections = emptyList()
                             ),
                             val studentDetails : Student = Student(
                                 id = 0,

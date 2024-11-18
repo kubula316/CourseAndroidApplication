@@ -38,6 +38,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import eu.tutorials.courseapplication.Course
 import eu.tutorials.courseapplication.Status
+import eu.tutorials.courseapplication.screens.CourseContentScreen
 import eu.tutorials.courseapplication.screens.CourseDetailsScreen
 import eu.tutorials.courseapplication.screens.CoursesScreen
 import eu.tutorials.courseapplication.screens.LoginScreen
@@ -45,6 +46,7 @@ import eu.tutorials.courseapplication.screens.ProfileScreen
 import eu.tutorials.courseapplication.screens.SavedCoursesScreen
 import eu.tutorials.courseapplication.screens.SearchScreen
 import eu.tutorials.courseapplication.screens.SearchTagScreen
+import eu.tutorials.courseapplication.screens.ShowCourseContentScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -186,17 +188,17 @@ fun AppNav(){
                 })
             }
             composable<CourseDetailsScreen> {
-                val args = it.toRoute<CourseDetailsScreen>()
                 CourseDetailsScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                    viewState = viewState,
-                    args = args)
+                    viewState = viewState)
             }
             composable<SearchScreen> {
                 SearchScreen(
-                   modifier = Modifier.fillMaxSize().padding(paddingValues),
+                   modifier = Modifier
+                       .fillMaxSize()
+                       .padding(paddingValues),
                     onCategoryClick =  {category ->
                         courseViewModel.searchCoursesByCategory(category)
                         navController.navigate(SearchTagScreen)
@@ -210,7 +212,11 @@ fun AppNav(){
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                    onCourseClick = {},
+                    onCourseClick = {course: Course ->
+                        courseViewModel.loadCourseFromView(course)
+                        courseViewModel.changeLookingAtDetails(true)
+                        navController.navigate(CourseContentScreen)
+                    },
                     viewState = viewState
                 )
             }
@@ -238,6 +244,13 @@ fun AppNav(){
                         navController.navigate(CourseDetailsScreen)
                         courseViewModel.changeLookingAtDetails(true)
                     })
+            }
+            composable<CourseContentScreen> {
+                CourseContentScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    viewState = viewState)
             }
 
         }

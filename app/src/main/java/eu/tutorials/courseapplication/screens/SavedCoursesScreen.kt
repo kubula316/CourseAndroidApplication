@@ -104,19 +104,7 @@ fun SavedCourseItem(course: Course, onCategoryClick: (Course) -> Unit) {
                     .padding(top = 2.dp)
             )
         }
-        Text(
-            text = "Members: ${course.participantsNumber}/${course.participantsLimit}",
-            color = if (course.participantsNumber < course.participantsLimit){
-                Color.Green} else Color.Red,
-            style = TextStyle(
-                fontWeight = FontWeight.Light,
-                textAlign = TextAlign.Left,
-                fontSize = 16.sp
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 2.dp)
-        )
+
 
 
     }

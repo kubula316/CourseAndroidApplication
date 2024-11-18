@@ -1,22 +1,18 @@
 package eu.tutorials.courseapplication.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
@@ -25,12 +21,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import eu.tutorials.courseapplication.Course
 import eu.tutorials.courseapplication.MainViewModel
 import eu.tutorials.courseapplication.navigation.CourseDetailsScreen
 
 @Composable
-fun CourseDetailsScreen(
+fun CourseContentScreen(
     viewState: MainViewModel.CoursesState,
     modifier: Modifier = Modifier
 ){
@@ -42,14 +37,14 @@ fun CourseDetailsScreen(
                 println(viewState.error)
             }
             else -> {
-                ShowCourseDetailsScreen(viewState)
+                ShowCourseContentScreen(viewState)
             }
         }
     }
 }
 
 @Composable
-fun ShowCourseDetailsScreen(viewState: MainViewModel.CoursesState) {
+fun ShowCourseContentScreen(viewState: MainViewModel.CoursesState) {
     Column(
         modifier = Modifier
             .padding(16.dp),
@@ -89,7 +84,8 @@ fun ShowCourseDetailsScreen(viewState: MainViewModel.CoursesState) {
         )
         Text(
             text = "Members: ${viewState.courseDetails.participantsNumber}/${viewState.courseDetails.participantsLimit}",
-            color = if (viewState.courseDetails.participantsNumber < viewState.courseDetails.participantsLimit){Color.Green} else Color.Red,
+            color = if (viewState.courseDetails.participantsNumber < viewState.courseDetails.participantsLimit){
+                Color.Green} else Color.Red,
             style = TextStyle(
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.Left,
