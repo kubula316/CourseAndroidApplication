@@ -1,9 +1,12 @@
 package eu.tutorials.courseapplication
 
+import android.content.Context
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
 import eu.tutorials.courseapplication.service.studentService
 import kotlinx.coroutines.launch
 import eu.tutorials.courseapplication.service.AuthRequest
@@ -165,6 +168,10 @@ class MainViewModel : ViewModel() {
         _coursesState.value = _coursesState.value.copy(loading = false, courseDetails = course)
     }
 
+    fun setCurrentVideoUrl(url: String) {
+        _coursesState.value = _coursesState.value.copy(playVideoUrl = url)
+    }
+
 
     data class CoursesState(val loading: Boolean = false,
                             val list: List<CourseDto> = emptyList(),
@@ -199,6 +206,7 @@ class MainViewModel : ViewModel() {
                             ),
                             val savedCourses: List<Course> = emptyList(),
                             val searchedCourses: List<CourseDto> = emptyList(),
-                            val searchQuerry : String = ""
+                            val searchQuerry : String = "",
+                            val playVideoUrl: String = ""
         ){}
 }

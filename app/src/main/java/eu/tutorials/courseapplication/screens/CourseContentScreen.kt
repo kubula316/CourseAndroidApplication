@@ -46,12 +46,14 @@ import eu.tutorials.courseapplication.Lecture
 import eu.tutorials.courseapplication.MainViewModel
 import eu.tutorials.courseapplication.Section
 import eu.tutorials.courseapplication.navigation.CourseDetailsScreen
+import eu.tutorials.courseapplication.util.VideoPlayer
 
 
 @Composable
 fun CourseContentScreen(
     viewState: MainViewModel.CoursesState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onLecutreClick: (String) -> Unit
 ) {
     Box(modifier = modifier.background(
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
@@ -67,25 +69,29 @@ fun CourseContentScreen(
             }
 
             else -> {
-                ShowCourseContentScreen(viewState)
+                ShowCourseContentScreen(viewState, onLecutreClick)
             }
         }
     }
 }
 
 @Composable
-fun ShowCourseContentScreen(viewState: MainViewModel.CoursesState) {
+fun ShowCourseContentScreen(viewState: MainViewModel.CoursesState, onLectureClick: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        SectionShowScreen(sections = viewState.courseDetails.sections, onLectureClick = {})
+        VideoPlayer(videoUrl = viewState.playVideoUrl)
+        SectionShowScreen(sections = viewState.courseDetails.sections,
+            onLectureClick = { url->
+                onLectureClick(url)
+        })
     }
 }
 
 @Composable
-fun SectionShowScreen(sections: List<Section>, onLectureClick: () -> Unit) {
+fun SectionShowScreen(sections: List<Section>, onLectureClick: (String) -> Unit) {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -97,8 +103,8 @@ fun SectionShowScreen(sections: List<Section>, onLectureClick: () -> Unit) {
 }
 
 @Composable
-fun SectionBlock(section: Section, onLectureClick: () -> Unit) {
-    val isExpanded = remember { mutableStateOf(false) }
+fun SectionBlock(section: Section, onLectureClick: (String) -> Unit) {
+    val isExpanded = remember { mutableStateOf(true) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -111,7 +117,7 @@ fun SectionBlock(section: Section, onLectureClick: () -> Unit) {
                 style = TextStyle(
                     fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.Left,
-                    fontSize = 28.sp
+                    fontSize = 20.sp
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -130,11 +136,11 @@ fun SectionBlock(section: Section, onLectureClick: () -> Unit) {
     }
 }
 @Composable
-fun LessonBlock(lesson: Lecture, onLectureClick: () -> Unit) {
+fun LessonBlock(lesson: Lecture, onLectureClick: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable {  },
+            .clickable {onLectureClick(lesson.videoUrl)},
         verticalAlignment = Alignment.CenterVertically
 
     ) {

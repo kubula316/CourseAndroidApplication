@@ -250,7 +250,11 @@ fun AppNav(){
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                    viewState = viewState)
+                    viewState = viewState,
+                    onLecutreClick = {url ->
+                        courseViewModel.setCurrentVideoUrl(url)
+                    }
+                )
             }
 
         }
