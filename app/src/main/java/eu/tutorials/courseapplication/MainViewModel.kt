@@ -21,6 +21,31 @@ class MainViewModel : ViewModel() {
     private val _authToken = mutableStateOf<String?>(null)
     val authToken: State<String?> = _authToken
 
+    private var _exoPlayer: ExoPlayer? = null
+    val exoPlayer: ExoPlayer?
+        get() = _exoPlayer
+
+    fun initializeExoPlayer(context: Context) {
+        if (_exoPlayer == null) {
+            _exoPlayer = ExoPlayer.Builder(context).build()
+        }
+    }
+
+    fun setVideoUrl(videoUrl: String) {
+        _exoPlayer?.let { player ->
+            val mediaItem = MediaItem.fromUri(videoUrl)
+            player.setMediaItem(mediaItem)
+            player.prepare()
+            player.playWhenReady = true
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        _exoPlayer?.release()
+        _exoPlayer = null
+    }
+
     fun login(email:String, password:String){
         validateStudent(email, password)
     }
@@ -170,6 +195,7 @@ class MainViewModel : ViewModel() {
 
     fun setCurrentVideoUrl(url: String) {
         _coursesState.value = _coursesState.value.copy(playVideoUrl = url)
+        setVideoUrl(url)
     }
 
 

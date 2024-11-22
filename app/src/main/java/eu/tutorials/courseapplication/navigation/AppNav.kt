@@ -1,5 +1,6 @@
 package eu.tutorials.courseapplication.navigation
 
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -90,7 +92,8 @@ fun AppNav(){
 
     )
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
-
+    val context : Context = LocalContext.current
+    courseViewModel.initializeExoPlayer(context)
     Scaffold(
         bottomBar = {if (viewState.isAuthenticated)
             NavigationBar {
@@ -253,7 +256,8 @@ fun AppNav(){
                     viewState = viewState,
                     onLecutreClick = {url ->
                         courseViewModel.setCurrentVideoUrl(url)
-                    }
+                    },
+                    viewModel = courseViewModel
                 )
             }
 

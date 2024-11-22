@@ -53,7 +53,8 @@ import eu.tutorials.courseapplication.util.VideoPlayer
 fun CourseContentScreen(
     viewState: MainViewModel.CoursesState,
     modifier: Modifier = Modifier,
-    onLecutreClick: (String) -> Unit
+    onLecutreClick: (String) -> Unit,
+    viewModel: MainViewModel
 ) {
     Box(modifier = modifier.background(
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
@@ -69,20 +70,20 @@ fun CourseContentScreen(
             }
 
             else -> {
-                ShowCourseContentScreen(viewState, onLecutreClick)
+                ShowCourseContentScreen(viewState, onLecutreClick, viewModel)
             }
         }
     }
 }
 
 @Composable
-fun ShowCourseContentScreen(viewState: MainViewModel.CoursesState, onLectureClick: (String) -> Unit) {
+fun ShowCourseContentScreen(viewState: MainViewModel.CoursesState, onLectureClick: (String) -> Unit, viewModel: MainViewModel) {
     Column(
         modifier = Modifier
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        VideoPlayer(videoUrl = viewState.playVideoUrl)
+        VideoPlayer(viewModel)
         SectionShowScreen(sections = viewState.courseDetails.sections,
             onLectureClick = { url->
                 onLectureClick(url)

@@ -9,19 +9,16 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import eu.tutorials.courseapplication.MainViewModel
 import java.lang.reflect.Modifier
 
 
 @Composable
-fun VideoPlayer(videoUrl: String) {
+fun VideoPlayer(viewModel: MainViewModel) {
     val context = LocalContext.current
 
-    // Tworzymy instancję ExoPlayer
-    val exoPlayer = remember(context) {
-        ExoPlayer.Builder(context).build()
-    }
+    val exoPlayer = viewModel.exoPlayer
 
-    // Używamy AndroidView, aby zintegrować ExoPlayer z Compose
     AndroidView(
         factory = { context ->
             PlayerView(context).apply {
@@ -29,24 +26,9 @@ fun VideoPlayer(videoUrl: String) {
                 useController = true // Kontrolki odtwarzania (play, pause, itd.)
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
-                    800
+                    600
                 )
             }
         }
     )
-
-    // Zwalnianie zasobów, gdy widok nie jest już wyświetlany
-    DisposableEffect(videoUrl) {
-        if (videoUrl.isNotEmpty()) {
-            val mediaItem = MediaItem.fromUri(videoUrl)
-            exoPlayer.setMediaItem(mediaItem) // Ustawienie nowego MediaItem
-            exoPlayer.prepare()
-            exoPlayer.playWhenReady = true
-        }
-
-        onDispose {
-            exoPlayer.stop()
-            exoPlayer.release()
-        }
-    }
 }
