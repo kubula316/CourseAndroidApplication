@@ -71,7 +71,6 @@ fun ProfileShowScreen(viewState: MainViewModel.CoursesState, onLogoutClick : ()-
                 .size(156.dp)
                 .clip(CircleShape) // clip to the circle shape
                 .border(4.dp, Color.Gray, CircleShape)//optional
-                .padding(top = 12.dp)
         )
         Text(
             text = "${viewState.studentDetails.firstName} ${viewState.studentDetails.lastName}",
@@ -112,7 +111,7 @@ fun ProfileShowScreen(viewState: MainViewModel.CoursesState, onLogoutClick : ()-
         ) {
             Box(
                 modifier = Modifier
-                    .size(18.dp) // Rozmiar lampki
+                    .size(20.dp) // Rozmiar lampki
                     .background(if (viewState.studentDetails.status == Status.ACTIVE) Color.Green else Color.Red)
                     .padding(end = 8.dp)
                     .clip(RoundedCornerShape(32.dp))
@@ -126,7 +125,7 @@ fun ProfileShowScreen(viewState: MainViewModel.CoursesState, onLogoutClick : ()-
         Text(
             text = "Logout",
             color = Color.Red,
-            fontSize = 16.sp,
+            fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             modifier = Modifier

@@ -47,6 +47,7 @@ fun CoursesScreen(
                 println(viewState.error)
             }
             else -> {
+                println(viewState.studentDetails)
                 CoursesShowScreen(courses = viewState.list, onCourseClick)
             }
         }

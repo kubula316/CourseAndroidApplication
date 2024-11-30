@@ -1,11 +1,13 @@
 package eu.tutorials.courseapplication
 
 import android.content.Context
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import eu.tutorials.courseapplication.service.studentService
 import kotlinx.coroutines.launch
@@ -27,11 +29,40 @@ class MainViewModel : ViewModel() {
 
     fun initializeExoPlayer(context: Context) {
         if (_exoPlayer == null) {
-            _exoPlayer = ExoPlayer.Builder(context).build()
+            _exoPlayer = ExoPlayer.Builder(context).build().apply {
+                addListener(object : Player.Listener {
+                    override fun onPlaybackStateChanged(state: Int) {
+                        if (state == Player.STATE_ENDED) {
+                            markVideoAsWatched()
+                        }
+                    }
+
+                    override fun onEvents(player: Player, events: Player.Events) {
+                        checkPlaybackProgress()
+                    }
+                })
+            }
         }
     }
 
-    fun setVideoUrl(videoUrl: String) {
+    private fun checkPlaybackProgress() {
+        _exoPlayer?.let { player ->
+            val currentPosition = player.currentPosition
+            val duration = player.duration
+            if (duration > 0) {
+                val progress = currentPosition.toDouble() / duration
+                if (progress >= 0.95) {
+                    markVideoAsWatched()
+                }
+            }
+        }
+    }
+
+    private fun markVideoAsWatched() {
+        println("Video has been watched.")
+    }
+
+    private fun setVideoUrl(videoUrl: String) {
         _exoPlayer?.let { player ->
             val mediaItem = MediaItem.fromUri(videoUrl)
             player.setMediaItem(mediaItem)
@@ -55,7 +86,9 @@ class MainViewModel : ViewModel() {
         val token = "Bearer ${_authToken.value}"
         val student : Student = studentService.getStudentData(id, token)
         _coursesState.value = _coursesState.value.copy(studentDetails = student)
-        val savedCourses :List<Course> = courseService.getSavedCourses(_coursesState.value.studentDetails.enrolledCourses, token)
+        val enrolledCourses:List<String> = _coursesState.value.studentDetails.enrolledCourses.map { it.courseId }
+
+        val savedCourses :List<Course> = courseService.getSavedCourses(enrolledCourses, token)
         _coursesState.value = _coursesState.value.copy(savedCourses= savedCourses)
     }
 
@@ -234,5 +267,5 @@ class MainViewModel : ViewModel() {
                             val searchedCourses: List<CourseDto> = emptyList(),
                             val searchQuerry : String = "",
                             val playVideoUrl: String = ""
-        ){}
+        )
 }

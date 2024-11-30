@@ -42,7 +42,7 @@ data class Section(
 
 @Serializable
 data class Lecture(
-    val id: Long,
+    val id: String,
     val title: String,
     val videoUrl: String,
     val description: String,
@@ -56,9 +56,16 @@ data class Student(
     val lastName: String,
     val email: String,
     val status: Status,
-    val enrolledCourses: List<String>,
+    val enrolledCourses: List<EnrolledCourse> = emptyList(),
     val profileImageUrl: String,
 )
+
+data class EnrolledCourse(
+    val courseId : String,
+    val completedLectures: List<String>?
+)
+
+
 
 data class CourseResponse(val categories: List<Course>)
 

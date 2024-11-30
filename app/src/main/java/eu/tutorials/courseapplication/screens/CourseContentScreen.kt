@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.exoplayer.ExoPlayer
 import coil.compose.rememberAsyncImagePainter
+import eu.tutorials.courseapplication.EnrolledCourse
 import eu.tutorials.courseapplication.Lecture
 import eu.tutorials.courseapplication.MainViewModel
 import eu.tutorials.courseapplication.Section
@@ -68,7 +69,6 @@ fun CourseContentScreen(
                 Text(text = "${viewState.error}")
                 println(viewState.error)
             }
-
             else -> {
                 ShowCourseContentScreen(viewState, onLecutreClick, viewModel)
             }
@@ -85,6 +85,7 @@ fun ShowCourseContentScreen(viewState: MainViewModel.CoursesState, onLectureClic
     ) {
         VideoPlayer(viewModel)
         SectionShowScreen(sections = viewState.courseDetails.sections,
+            enrolledCourse = viewState.studentDetails.enrolledCourses.find { it.courseId == viewState.courseDetails.code}!!,
             onLectureClick = { url->
                 onLectureClick(url)
         })
@@ -92,19 +93,22 @@ fun ShowCourseContentScreen(viewState: MainViewModel.CoursesState, onLectureClic
 }
 
 @Composable
-fun SectionShowScreen(sections: List<Section>, onLectureClick: (String) -> Unit) {
+fun SectionShowScreen(sections: List<Section>,
+                      onLectureClick: (String) -> Unit,
+                      enrolledCourse: EnrolledCourse) {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
     ) {
+        println(enrolledCourse)
         items(sections) { section ->
-            SectionBlock(section, onLectureClick)
+            SectionBlock(section, onLectureClick, enrolledCourse)
         }
     }
 }
 
 @Composable
-fun SectionBlock(section: Section, onLectureClick: (String) -> Unit) {
+fun SectionBlock(section: Section, onLectureClick: (String) -> Unit, enrolledCourse: EnrolledCourse) {
     val isExpanded = remember { mutableStateOf(true) }
     Column(
         modifier = Modifier
@@ -118,17 +122,17 @@ fun SectionBlock(section: Section, onLectureClick: (String) -> Unit) {
                 style = TextStyle(
                     fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.Left,
-                    fontSize = 20.sp
+                    fontSize = 22.sp
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 4.dp, start = 16.dp)
+                    .padding(top = 4.dp, start = 16.dp, bottom = 4.dp)
 
             )
 
             if (isExpanded.value) {
                 section.lessons.forEach() { lesson ->
-                    LessonBlock(lesson = lesson, onLectureClick = onLectureClick)
+                    LessonBlock(lesson = lesson, onLectureClick = onLectureClick, enrolledCourse)
                 }
 
             }
@@ -137,11 +141,11 @@ fun SectionBlock(section: Section, onLectureClick: (String) -> Unit) {
     }
 }
 @Composable
-fun LessonBlock(lesson: Lecture, onLectureClick: (String) -> Unit) {
+fun LessonBlock(lesson: Lecture, onLectureClick: (String) -> Unit, enrolledCourse: EnrolledCourse) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable {onLectureClick(lesson.videoUrl)},
+            .clickable { onLectureClick(lesson.videoUrl) },
         verticalAlignment = Alignment.CenterVertically
 
     ) {
@@ -155,11 +159,22 @@ fun LessonBlock(lesson: Lecture, onLectureClick: (String) -> Unit) {
             modifier = Modifier.padding(8.dp)
         ) {
             Row{
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "Check Icon",
-                    tint = Color.Green
-                )
+
+                if (enrolledCourse.completedLectures != null && enrolledCourse.completedLectures.contains(lesson.videoUrl)) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Check Icon",
+                        tint = Color.Green,
+                        modifier = Modifier.clickable {  }
+                    )
+                }else{
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Check Icon",
+                        tint = Color.Gray,
+                        modifier = Modifier.clickable {  }
+                    )
+                }
                 Text(
                     text = lesson.title,
                     color = Color.White,

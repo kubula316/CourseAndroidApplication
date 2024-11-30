@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -44,25 +45,25 @@ fun SavedCoursesScreen(
                 println(viewState.error)
             }
             else -> {
-                ShowSavedCoursesScreen(courses = viewState.savedCourses, onCourseClick)
+                ShowSavedCoursesScreen(courses = viewState.savedCourses, onCourseClick, viewState)
             }
         }
     }
 }
 
 @Composable
-fun ShowSavedCoursesScreen(courses: List<Course>, onCategoryClick:(Course) -> Unit) {
+fun ShowSavedCoursesScreen(courses: List<Course>, onCategoryClick:(Course) -> Unit, viewState: MainViewModel.CoursesState) {
     LazyVerticalGrid(
         GridCells.Fixed(1), modifier = Modifier
         .fillMaxSize()) {
         items(courses){
-                course -> SavedCourseItem(course = course, onCategoryClick)
+                course -> SavedCourseItem(course = course, onCategoryClick, viewState)
         }
     }
 }
 
 @Composable
-fun SavedCourseItem(course: Course, onCategoryClick: (Course) -> Unit) {
+fun SavedCourseItem(course: Course, onCategoryClick: (Course) -> Unit, viewState: MainViewModel.CoursesState) {
     Column(
         modifier = Modifier
             .padding(4.dp)
@@ -104,6 +105,32 @@ fun SavedCourseItem(course: Course, onCategoryClick: (Course) -> Unit) {
                     .padding(top = 2.dp)
             )
         }
+
+        val enrolledCourse = viewState.studentDetails.enrolledCourses.find { it.courseId == course.code }
+
+        val progress = if (enrolledCourse!!.completedLectures != null && enrolledCourse.completedLectures!!.isNotEmpty()) {
+            val completedLessons = enrolledCourse.completedLectures.size
+            val totalLessons = course.sections.sumOf { it.lessons.count() }
+
+            if (totalLessons > 0) {
+                completedLessons.toFloat() / totalLessons
+            } else {
+                0f
+            }
+        } else {
+            0f
+        }
+
+        LinearProgressIndicator(
+            progress = progress,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            color = Color.Green,
+            trackColor = Color.Gray
+        )
+
+
 
 
 
