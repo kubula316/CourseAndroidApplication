@@ -1,6 +1,7 @@
 package eu.tutorials.courseapplication.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,7 +48,6 @@ fun CoursesScreen(
                 println(viewState.error)
             }
             else -> {
-                println(viewState.studentDetails)
                 CoursesShowScreen(courses = viewState.list, onCourseClick)
             }
         }
@@ -109,9 +109,9 @@ fun CourseItem(course: CourseDto, onCategoryClick: (CourseDto) -> Unit) {
         }
             Text(
                 text = "Members: ${course.participantsNumber}/${course.participantsLimit}",
-                color = if (course.participantsNumber < course.participantsLimit){Color.Green} else Color.Red,
+                color = if (course.participantsNumber < course.participantsLimit){Color.Magenta} else Color.Red,
                 style = TextStyle(
-                    fontWeight = FontWeight.Light,
+                    fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Left,
                     fontSize = 16.sp
                 ),

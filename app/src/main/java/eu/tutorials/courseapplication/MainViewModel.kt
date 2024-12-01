@@ -44,9 +44,16 @@ class MainViewModel : ViewModel() {
     private fun markVideoAsWatched() {
         if (!_coursesState.value.studentDetails.enrolledCourses.find { it.courseId == coursesState.value.courseDetails.code }!!.completedLecturesId.contains(_coursesState.value.playVideoLectureId)){
             viewModelScope.launch {
-                val token = "Bearer ${_authToken.value}"
-                val updatedStudent:Student = studentService.markLectureAsCompleted(coursesState.value.studentDetails.id, coursesState.value.courseDetails.code, coursesState.value.playVideoLectureId, token)
-                _coursesState.value = _coursesState.value.copy(studentDetails = updatedStudent)
+                try{
+                    val token = "Bearer ${_authToken.value}"
+                    val updatedStudent:Student = studentService.markLectureAsCompleted(coursesState.value.studentDetails.id, coursesState.value.courseDetails.code, coursesState.value.playVideoLectureId, token)
+                    _coursesState.value = _coursesState.value.copy(studentDetails = updatedStudent)
+                }catch (e : Exception){
+                    _coursesState.value = _coursesState.value.copy(
+                        error = "LoginError, ${e.message}"
+                    )
+                }
+
             }
         }
     }
@@ -55,13 +62,26 @@ class MainViewModel : ViewModel() {
         val token = "Bearer ${_authToken.value}"
         if (!isCompleted){
             viewModelScope.launch {
-                val updatedStudent:Student = studentService.markLectureAsCompleted(courseId = coursesState.value.courseDetails.code, studentId = coursesState.value.studentDetails.id, lectureId = lectureId, token = token)
-                _coursesState.value = _coursesState.value.copy(studentDetails = updatedStudent)
+                try {
+                    val updatedStudent:Student = studentService.markLectureAsCompleted(courseId = coursesState.value.courseDetails.code, studentId = coursesState.value.studentDetails.id, lectureId = lectureId, token = token)
+                    _coursesState.value = _coursesState.value.copy(studentDetails = updatedStudent)
+                }catch (e : Exception){
+                    _coursesState.value = _coursesState.value.copy(
+                        error = "LoginError, ${e.message}"
+                    )
+                }
             }
         }else{
             viewModelScope.launch {
-                val updatedStudent:Student = studentService.markLectureAsUncompleted(courseId = coursesState.value.courseDetails.code, studentId = coursesState.value.studentDetails.id, lectureId = lectureId, token = token)
-                _coursesState.value = _coursesState.value.copy(studentDetails = updatedStudent)
+                try {
+                    val updatedStudent:Student = studentService.markLectureAsUncompleted(courseId = coursesState.value.courseDetails.code, studentId = coursesState.value.studentDetails.id, lectureId = lectureId, token = token)
+                    _coursesState.value = _coursesState.value.copy(studentDetails = updatedStudent)
+                }catch (e : Exception){
+                    _coursesState.value = _coursesState.value.copy(
+                        error = "LoginError, ${e.message}"
+                    )
+                }
+
             }
         }
     }
@@ -233,6 +253,10 @@ class MainViewModel : ViewModel() {
     fun setCurrentVideoUrl(url: String, lectureId:String) {
         _coursesState.value = _coursesState.value.copy(playVideoUrl = url, playVideoLectureId = lectureId)
         setVideoUrl(url)
+    }
+
+    fun turnOfLookingAtDetails(){
+        _coursesState.value = _coursesState.value.copy(lookingAtDetails = false)
     }
 
 

@@ -1,10 +1,12 @@
 package eu.tutorials.courseapplication.navigation
 
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
@@ -17,6 +19,7 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
@@ -29,6 +32,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -60,7 +64,9 @@ fun AppNav(){
             unselectedIcon = Icons.Default.Home,
             hasNotification = false,
             badgeCount = null,
-            onClickAction = {navController.navigate(CoursesScreen)}
+            onClickAction = {
+                navController.navigate(CoursesScreen)
+                courseViewModel.turnOfLookingAtDetails()}
         ),
         BottomNavigationItem(
             title = "Search",
@@ -68,15 +74,20 @@ fun AppNav(){
             unselectedIcon = Icons.Default.Search,
             hasNotification = false,
             badgeCount = null,
-            onClickAction = {navController.navigate(SearchScreen)}
+            onClickAction = {
+                navController.navigate(SearchScreen)
+                courseViewModel.turnOfLookingAtDetails()}
         ),
         BottomNavigationItem(
-            title = "Saved",
+            title = "My Courses",
             selectedIcon = Icons.Filled.Create,
             unselectedIcon = Icons.Default.Create,
             hasNotification = false,
             badgeCount = null,
-            onClickAction = {navController.navigate(SavedCoursesScreen)}
+            onClickAction = {
+                navController.navigate(SavedCoursesScreen)
+                courseViewModel.turnOfLookingAtDetails()
+            }
         ),
         BottomNavigationItem(
             title = "Account",
@@ -84,7 +95,10 @@ fun AppNav(){
             unselectedIcon = Icons.Default.AccountCircle,
             hasNotification = false,
             badgeCount = null,
-            onClickAction = {navController.navigate(ProfileScreen)}
+            onClickAction = {
+                navController.navigate(ProfileScreen)
+                courseViewModel.turnOfLookingAtDetails()
+            }
         )
 
     )
