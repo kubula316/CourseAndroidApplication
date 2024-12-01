@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import eu.tutorials.courseapplication.Course
-import eu.tutorials.courseapplication.CourseDto
 import eu.tutorials.courseapplication.MainViewModel
 
 @Composable
@@ -108,8 +107,8 @@ fun SavedCourseItem(course: Course, onCategoryClick: (Course) -> Unit, viewState
 
         val enrolledCourse = viewState.studentDetails.enrolledCourses.find { it.courseId == course.code }
 
-        val progress = if (enrolledCourse!!.completedLectures != null && enrolledCourse.completedLectures!!.isNotEmpty()) {
-            val completedLessons = enrolledCourse.completedLectures.size
+        val progress = if (enrolledCourse!!.completedLecturesId != null && enrolledCourse.completedLecturesId!!.isNotEmpty()) {
+            val completedLessons = enrolledCourse.completedLecturesId.size
             val totalLessons = course.sections.sumOf { it.lessons.count() }
 
             if (totalLessons > 0) {

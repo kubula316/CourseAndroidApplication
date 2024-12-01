@@ -1,7 +1,6 @@
 package eu.tutorials.courseapplication
 
 import android.content.Context
-import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -37,29 +36,34 @@ class MainViewModel : ViewModel() {
                         }
                     }
 
-                    override fun onEvents(player: Player, events: Player.Events) {
-                        checkPlaybackProgress()
-                    }
                 })
             }
         }
     }
 
-    private fun checkPlaybackProgress() {
-        _exoPlayer?.let { player ->
-            val currentPosition = player.currentPosition
-            val duration = player.duration
-            if (duration > 0) {
-                val progress = currentPosition.toDouble() / duration
-                if (progress >= 0.95) {
-                    markVideoAsWatched()
-                }
+    private fun markVideoAsWatched() {
+        if (!_coursesState.value.studentDetails.enrolledCourses.find { it.courseId == coursesState.value.courseDetails.code }!!.completedLecturesId.contains(_coursesState.value.playVideoLectureId)){
+            viewModelScope.launch {
+                val token = "Bearer ${_authToken.value}"
+                val updatedStudent:Student = studentService.markLectureAsCompleted(coursesState.value.studentDetails.id, coursesState.value.courseDetails.code, coursesState.value.playVideoLectureId, token)
+                _coursesState.value = _coursesState.value.copy(studentDetails = updatedStudent)
             }
         }
     }
 
-    private fun markVideoAsWatched() {
-        println("Video has been watched.")
+    fun changeLectureCompletion(lectureId: String, isCompleted:Boolean){
+        val token = "Bearer ${_authToken.value}"
+        if (!isCompleted){
+            viewModelScope.launch {
+                val updatedStudent:Student = studentService.markLectureAsCompleted(courseId = coursesState.value.courseDetails.code, studentId = coursesState.value.studentDetails.id, lectureId = lectureId, token = token)
+                _coursesState.value = _coursesState.value.copy(studentDetails = updatedStudent)
+            }
+        }else{
+            viewModelScope.launch {
+                val updatedStudent:Student = studentService.markLectureAsUncompleted(courseId = coursesState.value.courseDetails.code, studentId = coursesState.value.studentDetails.id, lectureId = lectureId, token = token)
+                _coursesState.value = _coursesState.value.copy(studentDetails = updatedStudent)
+            }
+        }
     }
 
     private fun setVideoUrl(videoUrl: String) {
@@ -127,7 +131,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch{
             try{
                 val token = "Bearer ${_authToken.value}"
-                _coursesState.value = _coursesState.value.copy(loading = true,)
+                _coursesState.value = _coursesState.value.copy(loading = true)
                 val response = courseService.getAllCoursesDto(token)
                 _coursesState.value = _coursesState.value.copy(loading = false, list = response)
 
@@ -148,7 +152,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch{
             try{
                 val token = "Bearer ${_authToken.value}"
-                _coursesState.value = _coursesState.value.copy(loading = true,)
+                _coursesState.value = _coursesState.value.copy(loading = true)
 
                 val response = courseService.getCourse(courseId, token)
                 _coursesState.value = _coursesState.value.copy(loading = false, courseDetails = response)
@@ -162,12 +166,12 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun searchCoursesByTagsOrName(searchQuerry: String) {
+    fun searchCoursesByTagsOrName(searchQuery: String) {
         viewModelScope.launch{
             try{
                 val token = "Bearer ${_authToken.value}"
-                _coursesState.value = _coursesState.value.copy(loading = true,)
-                val response = courseService.getCoursesByTagsOrName(searchQuerry, token)
+                _coursesState.value = _coursesState.value.copy(loading = true)
+                val response = courseService.getCoursesByTagsOrName(searchQuery, token)
                 _coursesState.value = _coursesState.value.copy(loading = false, searchedCourses = response)
 
             }catch (e : Exception){
@@ -183,7 +187,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch{
             try{
                 val token = "Bearer ${_authToken.value}"
-                _coursesState.value = _coursesState.value.copy(loading = true,)
+                _coursesState.value = _coursesState.value.copy(loading = true)
                 val response = courseService.getCoursesByCategory(category, token)
                 _coursesState.value = _coursesState.value.copy(loading = false, searchedCourses = response)
 
@@ -219,15 +223,15 @@ class MainViewModel : ViewModel() {
     }
 
     fun updateSearchQuery(text: String) {
-        _coursesState.value = _coursesState.value.copy(searchQuerry = text)
+        _coursesState.value = _coursesState.value.copy(searchQuery = text)
     }
 
     fun loadCourseFromView(course: Course) {
         _coursesState.value = _coursesState.value.copy(loading = false, courseDetails = course)
     }
 
-    fun setCurrentVideoUrl(url: String) {
-        _coursesState.value = _coursesState.value.copy(playVideoUrl = url)
+    fun setCurrentVideoUrl(url: String, lectureId:String) {
+        _coursesState.value = _coursesState.value.copy(playVideoUrl = url, playVideoLectureId = lectureId)
         setVideoUrl(url)
     }
 
@@ -243,7 +247,7 @@ class MainViewModel : ViewModel() {
                                 status = Status.ACTIVE,
                                 name = "placeholder",
                                 description = "placeholder",
-                                author = "placehodler",
+                                author = "placeholder",
                                 startDate = "placeholder",
                                 endDate = "placeholder",
                                 participantsNumber = 0,
@@ -265,7 +269,8 @@ class MainViewModel : ViewModel() {
                             ),
                             val savedCourses: List<Course> = emptyList(),
                             val searchedCourses: List<CourseDto> = emptyList(),
-                            val searchQuerry : String = "",
-                            val playVideoUrl: String = ""
+                            val searchQuery : String = "",
+                            val playVideoUrl: String = "",
+                            val playVideoLectureId: String =""
         )
 }

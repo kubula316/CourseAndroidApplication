@@ -37,9 +37,7 @@ import androidx.navigation.compose.rememberNavController
 import eu.tutorials.courseapplication.MainViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
 import eu.tutorials.courseapplication.Course
-import eu.tutorials.courseapplication.Status
 import eu.tutorials.courseapplication.screens.CourseContentScreen
 import eu.tutorials.courseapplication.screens.CourseDetailsScreen
 import eu.tutorials.courseapplication.screens.CoursesScreen
@@ -48,7 +46,6 @@ import eu.tutorials.courseapplication.screens.ProfileScreen
 import eu.tutorials.courseapplication.screens.SavedCoursesScreen
 import eu.tutorials.courseapplication.screens.SearchScreen
 import eu.tutorials.courseapplication.screens.SearchTagScreen
-import eu.tutorials.courseapplication.screens.ShowCourseContentScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,7 +130,7 @@ fun AppNav(){
                             singleLine = true,
                             leadingIcon = {
                                 Icon(imageVector = Icons.Filled.Search, contentDescription = "Search", modifier = Modifier.clickable {
-                                    courseViewModel.searchCoursesByTagsOrName(viewState.searchQuerry)
+                                    courseViewModel.searchCoursesByTagsOrName(viewState.searchQuery)
                                     navController.navigate(SearchTagScreen)
                                 })
                             }
@@ -254,10 +251,13 @@ fun AppNav(){
                         .fillMaxSize()
                         .padding(paddingValues),
                     viewState = viewState,
-                    onLecutreClick = {url ->
-                        courseViewModel.setCurrentVideoUrl(url)
+                    onLecutreClick = {url, lectureId ->
+                        courseViewModel.setCurrentVideoUrl(url, lectureId)
                     },
-                    viewModel = courseViewModel
+                    viewModel = courseViewModel,
+                    onIconClick = {lectureId, isCompleted ->
+                        courseViewModel.changeLectureCompletion(lectureId, isCompleted)
+                    }
                 )
             }
 

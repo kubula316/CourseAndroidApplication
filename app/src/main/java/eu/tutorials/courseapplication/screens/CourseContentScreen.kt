@@ -1,52 +1,35 @@
 package eu.tutorials.courseapplication.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.exoplayer.ExoPlayer
-import coil.compose.rememberAsyncImagePainter
 import eu.tutorials.courseapplication.EnrolledCourse
 import eu.tutorials.courseapplication.Lecture
 import eu.tutorials.courseapplication.MainViewModel
 import eu.tutorials.courseapplication.Section
-import eu.tutorials.courseapplication.navigation.CourseDetailsScreen
 import eu.tutorials.courseapplication.util.VideoPlayer
 
 
@@ -54,8 +37,9 @@ import eu.tutorials.courseapplication.util.VideoPlayer
 fun CourseContentScreen(
     viewState: MainViewModel.CoursesState,
     modifier: Modifier = Modifier,
-    onLecutreClick: (String) -> Unit,
-    viewModel: MainViewModel
+    onLecutreClick: (String, String) -> Unit,
+    viewModel: MainViewModel,
+    onIconClick: (String, Boolean) -> Unit
 ) {
     Box(modifier = modifier.background(
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
@@ -70,14 +54,14 @@ fun CourseContentScreen(
                 println(viewState.error)
             }
             else -> {
-                ShowCourseContentScreen(viewState, onLecutreClick, viewModel)
+                ShowCourseContentScreen(viewState, onLecutreClick, viewModel, onIconClick)
             }
         }
     }
 }
 
 @Composable
-fun ShowCourseContentScreen(viewState: MainViewModel.CoursesState, onLectureClick: (String) -> Unit, viewModel: MainViewModel) {
+fun ShowCourseContentScreen(viewState: MainViewModel.CoursesState, onLectureClick: (String, String) -> Unit, viewModel: MainViewModel, onIconClick: (String, Boolean) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth(),
@@ -86,15 +70,17 @@ fun ShowCourseContentScreen(viewState: MainViewModel.CoursesState, onLectureClic
         VideoPlayer(viewModel)
         SectionShowScreen(sections = viewState.courseDetails.sections,
             enrolledCourse = viewState.studentDetails.enrolledCourses.find { it.courseId == viewState.courseDetails.code}!!,
-            onLectureClick = { url->
-                onLectureClick(url)
-        })
+            onLectureClick = { url, lectureId->
+                onLectureClick(url, lectureId)
+        },
+            onIconClick = onIconClick)
     }
 }
 
 @Composable
 fun SectionShowScreen(sections: List<Section>,
-                      onLectureClick: (String) -> Unit,
+                      onLectureClick: (String, String) -> Unit,
+                      onIconClick: (String, Boolean) -> Unit,
                       enrolledCourse: EnrolledCourse) {
     LazyColumn(
         modifier = Modifier
@@ -102,13 +88,13 @@ fun SectionShowScreen(sections: List<Section>,
     ) {
         println(enrolledCourse)
         items(sections) { section ->
-            SectionBlock(section, onLectureClick, enrolledCourse)
+            SectionBlock(section, onLectureClick, enrolledCourse, onIconClick)
         }
     }
 }
 
 @Composable
-fun SectionBlock(section: Section, onLectureClick: (String) -> Unit, enrolledCourse: EnrolledCourse) {
+fun SectionBlock(section: Section, onLectureClick: (String, String) -> Unit, enrolledCourse: EnrolledCourse, onIconClick: (String, Boolean) -> Unit) {
     val isExpanded = remember { mutableStateOf(true) }
     Column(
         modifier = Modifier
@@ -132,7 +118,7 @@ fun SectionBlock(section: Section, onLectureClick: (String) -> Unit, enrolledCou
 
             if (isExpanded.value) {
                 section.lessons.forEach() { lesson ->
-                    LessonBlock(lesson = lesson, onLectureClick = onLectureClick, enrolledCourse)
+                    LessonBlock(lesson = lesson, onLectureClick = onLectureClick, enrolledCourse, onIconClick)
                 }
 
             }
@@ -141,11 +127,11 @@ fun SectionBlock(section: Section, onLectureClick: (String) -> Unit, enrolledCou
     }
 }
 @Composable
-fun LessonBlock(lesson: Lecture, onLectureClick: (String) -> Unit, enrolledCourse: EnrolledCourse) {
+fun LessonBlock(lesson: Lecture, onLectureClick: (String, String) -> Unit, enrolledCourse: EnrolledCourse, onIconClick: (String, Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onLectureClick(lesson.videoUrl) },
+            .clickable { onLectureClick(lesson.videoUrl, lesson.id) },
         verticalAlignment = Alignment.CenterVertically
 
     ) {
@@ -159,22 +145,14 @@ fun LessonBlock(lesson: Lecture, onLectureClick: (String) -> Unit, enrolledCours
             modifier = Modifier.padding(8.dp)
         ) {
             Row{
-
-                if (enrolledCourse.completedLectures != null && enrolledCourse.completedLectures.contains(lesson.videoUrl)) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Check Icon",
-                        tint = Color.Green,
-                        modifier = Modifier.clickable {  }
-                    )
-                }else{
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Check Icon",
-                        tint = Color.Gray,
-                        modifier = Modifier.clickable {  }
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = "Check Icon",
+                    tint = if (enrolledCourse.completedLecturesId.contains(lesson.id)) Color.Green else Color.Gray,
+                    modifier = Modifier.clickable { onIconClick(lesson.id,
+                        enrolledCourse.completedLecturesId.contains(lesson.id)
+                    ) }
+                )
                 Text(
                     text = lesson.title,
                     color = Color.White,

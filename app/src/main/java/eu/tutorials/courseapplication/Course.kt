@@ -62,9 +62,8 @@ data class Student(
 
 data class EnrolledCourse(
     val courseId : String,
-    val completedLectures: List<String>?
+    val completedLecturesId: List<String>
 )
-
 
 
 data class CourseResponse(val categories: List<Course>)
