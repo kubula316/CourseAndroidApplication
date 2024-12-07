@@ -2,10 +2,12 @@ package eu.tutorials.courseapplication.service
 
 import eu.tutorials.courseapplication.Course
 import eu.tutorials.courseapplication.CourseDto
+import eu.tutorials.courseapplication.Student
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -35,5 +37,8 @@ interface CourseService{
 
     @GET("courses/search/category")
     suspend fun getCoursesByCategory(@Query("category") searchTerm : String ,@Header("Authorization") token: String): List<CourseDto>
+
+    @POST("courses/{code}/student/{id}")
+    suspend fun addStudentToCourse(@Path("code") code:String, @Path("id") id:Long, @Header("Authorization") token: String): Course
 
 }

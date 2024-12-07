@@ -32,7 +32,8 @@ import eu.tutorials.courseapplication.navigation.CourseDetailsScreen
 @Composable
 fun CourseDetailsScreen(
     viewState: MainViewModel.CoursesState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSignUpClick:(String) -> Unit
 ){
     Box(modifier = modifier){
         when{
@@ -42,14 +43,14 @@ fun CourseDetailsScreen(
                 println(viewState.error)
             }
             else -> {
-                ShowCourseDetailsScreen(viewState)
+                ShowCourseDetailsScreen(viewState, onSignUpClick)
             }
         }
     }
 }
 
 @Composable
-fun ShowCourseDetailsScreen(viewState: MainViewModel.CoursesState) {
+fun ShowCourseDetailsScreen(viewState: MainViewModel.CoursesState, onSignUpClick: (String) -> Unit) {
     Column(
         modifier = Modifier
             .padding(16.dp),
@@ -112,7 +113,7 @@ fun ShowCourseDetailsScreen(viewState: MainViewModel.CoursesState) {
                 .padding(top = 6.dp)
         )
         Button(
-            onClick = {  },
+            onClick = { onSignUpClick(viewState.courseDetails.code) },
             enabled = !viewState.loading,
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
         ) {

@@ -206,7 +206,9 @@ fun AppNav(){
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                    viewState = viewState)
+                    viewState = viewState,
+                    onSignUpClick = {code ->
+                        courseViewModel.enrollToCourse(code)})
             }
             composable<SearchScreen> {
                 SearchScreen(
