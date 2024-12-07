@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,7 +15,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,7 +52,9 @@ import eu.tutorials.courseapplication.Student
 fun SavedCoursesScreen(
     modifier: Modifier = Modifier,
     onCourseClick: (Course) -> Unit,
-    viewState: MainViewModel.CoursesState
+    viewState: MainViewModel.CoursesState,
+    studentViewState : Student,
+    onDeleteClick : (String) -> Unit
 ){
     Box(modifier = modifier){
         when{
@@ -58,14 +64,14 @@ fun SavedCoursesScreen(
                 println(viewState.error)
             }
             else -> {
-                ShowSavedCoursesScreen(courses = viewState.savedCourses, onCourseClick, viewState)
+                ShowSavedCoursesScreen(courses = viewState.savedCourses, onCourseClick, viewState, studentViewState, onDeleteClick)
             }
         }
     }
 }
 
 @Composable
-fun ShowSavedCoursesScreen(courses: List<Course>, onCategoryClick:(Course) -> Unit, viewState: MainViewModel.CoursesState) {
+fun ShowSavedCoursesScreen(courses: List<Course>, onCategoryClick:(Course) -> Unit, viewState: MainViewModel.CoursesState, studentViewState: Student, onDeleteClick: (String) -> Unit) {
     Column {
         LazyVerticalGrid(
             GridCells.Fixed(1), modifier = Modifier
@@ -73,7 +79,7 @@ fun ShowSavedCoursesScreen(courses: List<Course>, onCategoryClick:(Course) -> Un
                 .padding(8.dp)
         ) {
             items(courses){
-                    course -> SavedCourseItem(course = course, onCategoryClick, viewState)
+                    course -> SavedCourseItem(course = course, onCategoryClick, viewState, studentViewState, onDeleteClick)
             }
         }
     }
@@ -83,93 +89,107 @@ fun ShowSavedCoursesScreen(courses: List<Course>, onCategoryClick:(Course) -> Un
 
 
 @Composable
-fun SavedCourseItem(course: Course, onCategoryClick: (Course) -> Unit, viewState: MainViewModel.CoursesState) {
-    Box(modifier = Modifier
-        .background(
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.07f,),
-            shape = RoundedCornerShape(16.dp)
-        )
-        .padding(4.dp)
-        .clickable { onCategoryClick(course) }
-    ){
-        Column(
-            modifier = Modifier
-                .padding(4.dp)
-            ,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painter = rememberAsyncImagePainter(course.imageUrl),
-                contentDescription = "Category Image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f)
-                    .clip(RoundedCornerShape(32.dp))
-                    .border(width = 1.dp, color = Color.Magenta, shape = RoundedCornerShape(32.dp))
+fun SavedCourseItem(course: Course, onCategoryClick: (Course) -> Unit, viewState: MainViewModel.CoursesState, studentViewState: Student, onDeleteClick: (String) -> Unit) {
+    Box(modifier = Modifier.padding(bottom = 12.dp)){
+        Box(modifier = Modifier
+            .background(
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.07f,),
+                shape = RoundedCornerShape(16.dp)
             )
-            Text(
-                text = course.name,
-                color = Color.White,
-                style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Left,
-                    fontSize = 24.sp
-                ),
+            .padding(4.dp)
+            .clickable { onCategoryClick(course) }
+        ){
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp)
-            )
-            if (course.author != null){
+                    .padding(4.dp)
+                ,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = rememberAsyncImagePainter(course.imageUrl),
+                    contentDescription = "Category Image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(16f / 9f)
+                        .clip(RoundedCornerShape(32.dp))
+                        .border(
+                            width = 1.dp,
+                            color = Color.Magenta,
+                            shape = RoundedCornerShape(32.dp)
+                        )
+                )
                 Text(
-                    text = course.author,
-                    color = Color.LightGray,
+                    text = course.name,
+                    color = Color.White,
                     style = TextStyle(
-                        fontWeight = FontWeight.Light,
+                        fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Left,
-                        fontSize = 20.sp
+                        fontSize = 24.sp
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 6.dp)
                 )
-            }
+                if (course.author != null){
+                    Text(
+                        text = course.author,
+                        color = Color.LightGray,
+                        style = TextStyle(
+                            fontWeight = FontWeight.Light,
+                            textAlign = TextAlign.Left,
+                            fontSize = 20.sp
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 6.dp)
+                    )
+                }
 
-            val enrolledCourse = viewState.studentDetails.enrolledCourses.find { it.courseId == course.code }
+                val enrolledCourse = studentViewState.enrolledCourses.find { it.courseId == course.code }
 
-            val progress = if (enrolledCourse!!.completedLecturesId != null && enrolledCourse.completedLecturesId!!.isNotEmpty()) {
-                val completedLessons = enrolledCourse.completedLecturesId.size
-                val totalLessons = course.sections.sumOf { it.lessons.count() }
+                val progress = if (enrolledCourse!!.completedLecturesId != null && enrolledCourse.completedLecturesId!!.isNotEmpty()) {
+                    val completedLessons = enrolledCourse.completedLecturesId.size
+                    val totalLessons = course.sections.sumOf { it.lessons.count() }
 
-                if (totalLessons > 0) {
-                    completedLessons.toFloat() / totalLessons
+                    if (totalLessons > 0) {
+                        completedLessons.toFloat() / totalLessons
+                    } else {
+                        0f
+                    }
                 } else {
                     0f
                 }
-            } else {
-                0f
+
+                LinearProgressIndicator(
+                    progress = progress,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    color = Color.Magenta,
+                    trackColor = Color.Gray
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${progress*100} % Completed",
+                        color = Color.Magenta.copy(0.6f),
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Left
+                        ),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(imageVector = Icons.Filled.Delete, contentDescription = "Remove Course", tint = Color.Red, modifier = Modifier.clickable { onDeleteClick(course.code) })
+                }
+
+
             }
-
-            LinearProgressIndicator(
-                progress = progress,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                color = Color.Magenta,
-                trackColor = Color.Gray
-            )
-
-            Text(
-                text = "${progress*100} % Completed",
-                color = Color.Magenta.copy(0.6f),
-                style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    textAlign = TextAlign.Left
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
     }
+
 
 
 

@@ -57,6 +57,7 @@ fun AppNav(){
     val navController = rememberNavController()
     val courseViewModel: MainViewModel = viewModel()
     val viewState by courseViewModel.coursesState
+    val studentViewState by courseViewModel.studentDetails
     val items = listOf(
         BottomNavigationItem(
             title = "Home",
@@ -66,7 +67,9 @@ fun AppNav(){
             badgeCount = null,
             onClickAction = {
                 navController.navigate(CoursesScreen)
-                courseViewModel.turnOfLookingAtDetails()}
+                courseViewModel.turnOfLookingAtDetails()
+                courseViewModel.stopVideoPlayer()
+            }
         ),
         BottomNavigationItem(
             title = "Search",
@@ -76,7 +79,9 @@ fun AppNav(){
             badgeCount = null,
             onClickAction = {
                 navController.navigate(SearchScreen)
-                courseViewModel.turnOfLookingAtDetails()}
+                courseViewModel.turnOfLookingAtDetails()
+                courseViewModel.stopVideoPlayer()
+            }
         ),
         BottomNavigationItem(
             title = "My Courses",
@@ -87,6 +92,7 @@ fun AppNav(){
             onClickAction = {
                 navController.navigate(SavedCoursesScreen)
                 courseViewModel.turnOfLookingAtDetails()
+                courseViewModel.stopVideoPlayer()
             }
         ),
         BottomNavigationItem(
@@ -98,6 +104,7 @@ fun AppNav(){
             onClickAction = {
                 navController.navigate(ProfileScreen)
                 courseViewModel.turnOfLookingAtDetails()
+                courseViewModel.stopVideoPlayer()
             }
         )
 
@@ -160,7 +167,7 @@ fun AppNav(){
                             navController.navigate(CoursesScreen)
                             courseViewModel.changeLookingAtDetails(false)
                             courseViewModel.changeItemIndex(0)
-
+                            courseViewModel.stopVideoPlayer()
                         }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -208,7 +215,8 @@ fun AppNav(){
                         .padding(paddingValues),
                     viewState = viewState,
                     onSignUpClick = {code ->
-                        courseViewModel.enrollToCourse(code)})
+                        courseViewModel.enrollToCourse(code)},
+                    studentViewState = studentViewState)
             }
             composable<SearchScreen> {
                 SearchScreen(
@@ -233,7 +241,11 @@ fun AppNav(){
                         courseViewModel.changeLookingAtDetails(true)
                         navController.navigate(CourseContentScreen)
                     },
-                    viewState = viewState
+                    viewState = viewState,
+                    studentViewState = studentViewState,
+                    onDeleteClick = {code : String ->
+                        courseViewModel.removeCourse(code)
+                    }
                 )
             }
             composable<ProfileScreen> {
@@ -247,7 +259,8 @@ fun AppNav(){
                             popUpTo(LoginScreen)
                         }
                         courseViewModel.logout()
-                    })
+                    },
+                    studentViewState = studentViewState)
             }
             composable<SearchTagScreen>{
                 SearchTagScreen(
@@ -273,7 +286,8 @@ fun AppNav(){
                     viewModel = courseViewModel,
                     onIconClick = {lectureId, isCompleted ->
                         courseViewModel.changeLectureCompletion(lectureId, isCompleted)
-                    }
+                    },
+                    studentViewState = studentViewState
                 )
             }
 

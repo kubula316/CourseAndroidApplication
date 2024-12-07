@@ -30,6 +30,7 @@ import eu.tutorials.courseapplication.EnrolledCourse
 import eu.tutorials.courseapplication.Lecture
 import eu.tutorials.courseapplication.MainViewModel
 import eu.tutorials.courseapplication.Section
+import eu.tutorials.courseapplication.Student
 import eu.tutorials.courseapplication.util.VideoPlayer
 
 
@@ -39,7 +40,8 @@ fun CourseContentScreen(
     modifier: Modifier = Modifier,
     onLecutreClick: (String, String) -> Unit,
     viewModel: MainViewModel,
-    onIconClick: (String, Boolean) -> Unit
+    onIconClick: (String, Boolean) -> Unit,
+    studentViewState :Student
 ) {
     Box(modifier = modifier.background(
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
@@ -54,14 +56,14 @@ fun CourseContentScreen(
                 println(viewState.error)
             }
             else -> {
-                ShowCourseContentScreen(viewState, onLecutreClick, viewModel, onIconClick)
+                ShowCourseContentScreen(viewState, onLecutreClick, viewModel, onIconClick, studentViewState)
             }
         }
     }
 }
 
 @Composable
-fun ShowCourseContentScreen(viewState: MainViewModel.CoursesState, onLectureClick: (String, String) -> Unit, viewModel: MainViewModel, onIconClick: (String, Boolean) -> Unit) {
+fun ShowCourseContentScreen(viewState: MainViewModel.CoursesState, onLectureClick: (String, String) -> Unit, viewModel: MainViewModel, onIconClick: (String, Boolean) -> Unit, studentViewState: Student) {
     Column(
         modifier = Modifier
             .fillMaxWidth(),
@@ -69,7 +71,7 @@ fun ShowCourseContentScreen(viewState: MainViewModel.CoursesState, onLectureClic
     ) {
         VideoPlayer(viewModel)
         SectionShowScreen(sections = viewState.courseDetails.sections,
-            enrolledCourse = viewState.studentDetails.enrolledCourses.find { it.courseId == viewState.courseDetails.code}!!,
+            enrolledCourse = studentViewState.enrolledCourses.find { it.courseId == viewState.courseDetails.code}!!,
             onLectureClick = { url, lectureId->
                 onLectureClick(url, lectureId)
         },

@@ -35,12 +35,14 @@ import coil.compose.rememberAsyncImagePainter
 import eu.tutorials.courseapplication.CourseDto
 import eu.tutorials.courseapplication.MainViewModel
 import eu.tutorials.courseapplication.Status
+import eu.tutorials.courseapplication.Student
 
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
     viewState: MainViewModel.CoursesState,
-    onLogoutClick : ()-> Unit
+    onLogoutClick : ()-> Unit,
+    studentViewState: Student
 ){
     Box(modifier = modifier){
         when{
@@ -50,21 +52,21 @@ fun ProfileScreen(
                 println(viewState.error)
             }
             else -> {
-                ProfileShowScreen(viewState = viewState, onLogoutClick)
+                ProfileShowScreen(viewState = viewState, onLogoutClick, studentViewState)
             }
         }
     }
 }
 
 @Composable
-fun ProfileShowScreen(viewState: MainViewModel.CoursesState, onLogoutClick : ()-> Unit) {
+fun ProfileShowScreen(viewState: MainViewModel.CoursesState, onLogoutClick : ()-> Unit, studentViewState: Student) {
     Column(
         modifier = Modifier
             .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = rememberAsyncImagePainter(viewState.studentDetails.profileImageUrl),
+            painter = rememberAsyncImagePainter(studentViewState.profileImageUrl),
             contentDescription = "Profile Image",
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -73,7 +75,7 @@ fun ProfileShowScreen(viewState: MainViewModel.CoursesState, onLogoutClick : ()-
                 .border(4.dp, Color.Gray, CircleShape)//optional
         )
         Text(
-            text = "${viewState.studentDetails.firstName} ${viewState.studentDetails.lastName}",
+            text = "${studentViewState.firstName} ${studentViewState.lastName}",
             color = Color.White,
             style = TextStyle(
                 fontWeight = FontWeight.Bold,
@@ -96,7 +98,7 @@ fun ProfileShowScreen(viewState: MainViewModel.CoursesState, onLogoutClick : ()-
                 tint = Color.White
             )
             Text(
-                text = viewState.studentDetails.email,
+                text = studentViewState.email,
                 color = Color.Gray,
                 style = TextStyle(
                     fontWeight = FontWeight.Light,
@@ -111,14 +113,14 @@ fun ProfileShowScreen(viewState: MainViewModel.CoursesState, onLogoutClick : ()-
         ) {
             Box(
                 modifier = Modifier
-                    .size(20.dp) // Rozmiar lampki
-                    .background(if (viewState.studentDetails.status == Status.ACTIVE) Color.Green else Color.Red)
+                    .size(20.dp)
+                    .background(if (studentViewState.status == Status.ACTIVE) Color.Green else Color.Red)
                     .padding(end = 8.dp)
                     .clip(RoundedCornerShape(32.dp))
             )
             Text(
-                text = if (viewState.studentDetails.status == Status.ACTIVE) "ACTIVE" else "INACTIVE",
-                color = if (viewState.studentDetails.status == Status.ACTIVE) Color.Green else Color.Red,
+                text = if (studentViewState.status == Status.ACTIVE) "ACTIVE" else "INACTIVE",
+                color = if (studentViewState.status == Status.ACTIVE) Color.Green else Color.Red,
                 fontSize = 32.sp
             )
         }
@@ -130,7 +132,7 @@ fun ProfileShowScreen(viewState: MainViewModel.CoursesState, onLogoutClick : ()-
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onLogoutClick() }  // tutaj dodajemy kliknięcie
+                .clickable { onLogoutClick() }
         )
 
     }

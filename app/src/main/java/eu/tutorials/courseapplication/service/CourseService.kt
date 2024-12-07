@@ -5,6 +5,7 @@ import eu.tutorials.courseapplication.CourseDto
 import eu.tutorials.courseapplication.Student
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -40,5 +41,9 @@ interface CourseService{
 
     @POST("courses/{code}/student/{id}")
     suspend fun addStudentToCourse(@Path("code") code:String, @Path("id") id:Long, @Header("Authorization") token: String): Course
+
+    @DELETE("courses/{code}/student/{email}")
+    suspend fun removeCourse(@Path("code") code:String, @Path("email") email:String, @Header("Authorization") token: String): Unit
+
 
 }

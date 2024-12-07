@@ -27,13 +27,15 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import eu.tutorials.courseapplication.Course
 import eu.tutorials.courseapplication.MainViewModel
+import eu.tutorials.courseapplication.Student
 import eu.tutorials.courseapplication.navigation.CourseDetailsScreen
 
 @Composable
 fun CourseDetailsScreen(
     viewState: MainViewModel.CoursesState,
     modifier: Modifier = Modifier,
-    onSignUpClick:(String) -> Unit
+    onSignUpClick:(String) -> Unit,
+    studentViewState:Student
 ){
     Box(modifier = modifier){
         when{
@@ -43,14 +45,14 @@ fun CourseDetailsScreen(
                 println(viewState.error)
             }
             else -> {
-                ShowCourseDetailsScreen(viewState, onSignUpClick)
+                ShowCourseDetailsScreen(viewState, onSignUpClick, studentViewState)
             }
         }
     }
 }
 
 @Composable
-fun ShowCourseDetailsScreen(viewState: MainViewModel.CoursesState, onSignUpClick: (String) -> Unit) {
+fun ShowCourseDetailsScreen(viewState: MainViewModel.CoursesState, onSignUpClick: (String) -> Unit, studentViewState: Student) {
     Column(
         modifier = Modifier
             .padding(16.dp),
@@ -114,10 +116,10 @@ fun ShowCourseDetailsScreen(viewState: MainViewModel.CoursesState, onSignUpClick
         )
         Button(
             onClick = { onSignUpClick(viewState.courseDetails.code) },
-            enabled = !viewState.loading,
+            enabled = !viewState.loading or !viewState.softLoading,
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
         ) {
-            if (viewState.loading) {
+            if (viewState.loading or viewState.softLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
             } else {
                 Text(text = "Sign Up!")

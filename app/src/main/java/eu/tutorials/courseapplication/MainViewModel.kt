@@ -19,6 +19,9 @@ class MainViewModel : ViewModel() {
     private val _coursesState = mutableStateOf(CoursesState())
     val coursesState:State<CoursesState> = _coursesState
 
+    private val _studentDetails = mutableStateOf(Student(id = 0, firstName = "placeholder", lastName = "placeholder", email = "placeholder", status = Status.ACTIVE, enrolledCourses = emptyList(), profileImageUrl = "https://coursesapp.blob.core.windows.net/student-profile-image-container/BlankProfile.png"))
+    val studentDetails:State<Student> = _studentDetails
+
     private val _authToken = mutableStateOf<String?>(null)
     val authToken: State<String?> = _authToken
 
@@ -42,12 +45,12 @@ class MainViewModel : ViewModel() {
     }
 
     private fun markVideoAsWatched() {
-        if (!_coursesState.value.studentDetails.enrolledCourses.find { it.courseId == coursesState.value.courseDetails.code }!!.completedLecturesId.contains(_coursesState.value.playVideoLectureId)){
+        if (_studentDetails.value.enrolledCourses.find { it.courseId == coursesState.value.courseDetails.code }!!.completedLecturesId.contains(_coursesState.value.playVideoLectureId)){
             viewModelScope.launch {
                 try{
                     val token = "Bearer ${_authToken.value}"
-                    val updatedStudent:Student = studentService.markLectureAsCompleted(coursesState.value.studentDetails.id, coursesState.value.courseDetails.code, coursesState.value.playVideoLectureId, token)
-                    _coursesState.value = _coursesState.value.copy(studentDetails = updatedStudent)
+                    val updatedStudent:Student = studentService.markLectureAsCompleted(studentDetails.value.id, coursesState.value.courseDetails.code, coursesState.value.playVideoLectureId, token)
+                    _studentDetails.value = updatedStudent
                 }catch (e : Exception){
                     _coursesState.value = _coursesState.value.copy(
                         error = "LoginError, ${e.message}"
@@ -65,8 +68,9 @@ class MainViewModel : ViewModel() {
             if (!isCompleted){
                 viewModelScope.launch {
                     try {
-                        val updatedStudent:Student = studentService.markLectureAsCompleted(courseId = coursesState.value.courseDetails.code, studentId = coursesState.value.studentDetails.id, lectureId = lectureId, token = token)
-                        _coursesState.value = _coursesState.value.copy(studentDetails = updatedStudent, softLoading = false)
+                        val updatedStudent:Student = studentService.markLectureAsCompleted(courseId = coursesState.value.courseDetails.code, studentId = studentDetails.value.id, lectureId = lectureId, token = token)
+                        _studentDetails.value = updatedStudent
+                        _coursesState.value = _coursesState.value.copy(softLoading = false)
                     }catch (e : Exception){
                         _coursesState.value = _coursesState.value.copy(
                             error = "LoginError, ${e.message}",
@@ -77,8 +81,9 @@ class MainViewModel : ViewModel() {
             }else{
                 viewModelScope.launch {
                     try {
-                        val updatedStudent:Student = studentService.markLectureAsUncompleted(courseId = coursesState.value.courseDetails.code, studentId = coursesState.value.studentDetails.id, lectureId = lectureId, token = token)
-                        _coursesState.value = _coursesState.value.copy(studentDetails = updatedStudent, softLoading = false)
+                        val updatedStudent:Student = studentService.markLectureAsUncompleted(courseId = coursesState.value.courseDetails.code, studentId = studentDetails.value.id, lectureId = lectureId, token = token)
+                        _coursesState.value = _coursesState.value.copy(softLoading = false)
+                        _studentDetails.value = updatedStudent
                     }catch (e : Exception){
                         _coursesState.value = _coursesState.value.copy(
                             error = "LoginError, ${e.message}",
@@ -97,18 +102,47 @@ class MainViewModel : ViewModel() {
             viewModelScope.launch {
                 try {
                     _coursesState.value = _coursesState.value.copy(softLoading = true)
-                    val course:Course = courseService.addStudentToCourse(code,_coursesState.value.studentDetails.id,token)
-                    val newEnrolledCoursesList:List<EnrolledCourse> = _coursesState.value.studentDetails.enrolledCourses.toMutableList().apply {
-                        this.add(
-                            EnrolledCourse(course.code, emptyList())
-                        )
-                    }
-                    _coursesState.value = _coursesState.value.copy(studentDetails = _coursesState.value.studentDetails.copy(enrolledCourses = newEnrolledCoursesList))
-                    println(newEnrolledCoursesList)
-                    _coursesState.value = _coursesState.value.copy(softLoading = false)
+                    val course:Course = courseService.addStudentToCourse(code,studentDetails.value.id,token)
+                    val newEnrolledCoursesList = studentDetails.value.enrolledCourses
+                    val mutableList = newEnrolledCoursesList.toMutableList()
+                    mutableList.add(EnrolledCourse(courseId = course.code, emptyList()))
+                    val newSavedCoursesList = _coursesState.value.savedCourses
+                    val mutableList2 = newSavedCoursesList.toMutableList()
+                    mutableList2.add(course)
+                    _studentDetails.value = _studentDetails.value.copy(enrolledCourses = mutableList)
+                    _coursesState.value = _coursesState.value.copy(softLoading = false, savedCourses = mutableList2)
                 }catch (e:Exception){
                     _coursesState.value = _coursesState.value.copy(error = e.message, softLoading = false)
                 }
+            }
+        }
+    }
+
+    fun removeCourse(code:String){
+        viewModelScope.launch {
+            try {
+                _coursesState.value = _coursesState.value.copy(loading = true)
+                val token = "Bearer ${_authToken.value}"
+                courseService.removeCourse(code, studentDetails.value.email, token)
+                val newEnrolledCourses: List<EnrolledCourse> = studentDetails.value.enrolledCourses
+                val mutableCourses = newEnrolledCourses.toMutableList()
+                mutableCourses.removeIf{it.courseId == code}
+                val newSavedCoursesList = coursesState.value.savedCourses
+                val mutableList2 = newSavedCoursesList.toMutableList()
+                mutableList2.removeIf{it.code == code}
+                if (mutableList2.isNotEmpty()){
+                    _coursesState.value = _coursesState.value.copy(savedCourses = mutableList2)
+                }else{
+                    _coursesState.value = _coursesState.value.copy(savedCourses = emptyList())
+                }
+                if (mutableCourses.isNotEmpty()){
+                    _studentDetails.value = studentDetails.value.copy(enrolledCourses = mutableCourses)
+                }else{
+                    _studentDetails.value = studentDetails.value.copy(enrolledCourses = emptyList())
+                }
+                _coursesState.value = _coursesState.value.copy(loading = false)
+            }catch (e:Exception){
+                _coursesState.value = _coursesState.value.copy(loading = false, error = e.message)
             }
         }
     }
@@ -136,11 +170,15 @@ class MainViewModel : ViewModel() {
     private suspend fun loadStudentData(id: Long) {
         val token = "Bearer ${_authToken.value}"
         val student : Student = studentService.getStudentData(id, token)
-        _coursesState.value = _coursesState.value.copy(studentDetails = student)
-        val enrolledCourses:List<String> = _coursesState.value.studentDetails.enrolledCourses.map { it.courseId }
-        val savedCourses :List<Course> = courseService.getSavedCourses(enrolledCourses, token)
-        _coursesState.value = _coursesState.value.copy(savedCourses= savedCourses)
+        _studentDetails.value = student
+        val enrolledCourses:List<String> = studentDetails.value.enrolledCourses.map { it.courseId }
+        if (enrolledCourses.isNotEmpty()){
+            val savedCourses :List<Course> = courseService.getSavedCourses(enrolledCourses, token)
+            _coursesState.value = _coursesState.value.copy(savedCourses= savedCourses)
+        }
     }
+
+
 
     private fun validateStudent(email: String, password: String){
         viewModelScope.launch {
@@ -254,19 +292,18 @@ class MainViewModel : ViewModel() {
         _coursesState.value = _coursesState.value.copy(lookingAtDetails = boolean)
     }
 
+    fun stopVideoPlayer(){
+        _exoPlayer?.stop()
+    }
+
     fun logout() {
-        _coursesState.value = _coursesState.value.copy(isAuthenticated = false, lookingAtDetails = false, selectedItemIndex = 0,
-            studentDetails = Student(
-            id = 0,
-            firstName = "placeholder",
-            lastName = "placeholder",
-            email = "placeholder",
-            status = Status.ACTIVE,
-            enrolledCourses = emptyList(),
-            profileImageUrl = "https://coursesapp.blob.core.windows.net/student-profile-image-container/BlankProfile.png"
-        ))
+        _coursesState.value = _coursesState.value.copy(isAuthenticated = false, lookingAtDetails = false, selectedItemIndex = 0,)
+        _studentDetails.value = studentDetails.value.copy(id = 0, firstName = "placeholder", lastName = "placeholder", email = "placeholder", status = Status.ACTIVE, enrolledCourses = emptyList(), profileImageUrl = "https://coursesapp.blob.core.windows.net/student-profile-image-container/BlankProfile.png")
         _authToken.value = ""
     }
+
+    private fun enrolledCourses(): List<EnrolledCourse> =
+        emptyList()
 
     fun updateSearchQuery(text: String) {
         _coursesState.value = _coursesState.value.copy(searchQuery = text)
@@ -284,6 +321,7 @@ class MainViewModel : ViewModel() {
     fun turnOfLookingAtDetails(){
         _coursesState.value = _coursesState.value.copy(lookingAtDetails = false)
     }
+
 
 
     data class CoursesState(val loading: Boolean = false,
@@ -308,15 +346,6 @@ class MainViewModel : ViewModel() {
                                 tags = emptyList(),
                                 imageUrl = "placeholder",
                                 sections = emptyList()
-                            ),
-                            val studentDetails : Student = Student(
-                                id = 0,
-                                firstName = "placeholder",
-                                lastName = "placeholder",
-                                email = "placeholder",
-                                status = Status.ACTIVE,
-                                enrolledCourses = emptyList(),
-                                profileImageUrl = "https://coursesapp.blob.core.windows.net/student-profile-image-container/BlankProfile.png"
                             ),
                             val savedCourses: List<Course> = emptyList(),
                             val searchedCourses: List<CourseDto> = emptyList(),
