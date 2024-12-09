@@ -216,7 +216,8 @@ fun AppNav(){
                     viewState = viewState,
                     onSignUpClick = {code ->
                         courseViewModel.enrollToCourse(code)},
-                    studentViewState = studentViewState)
+                    studentViewState = studentViewState,
+                    context = context)
             }
             composable<SearchScreen> {
                 SearchScreen(
@@ -245,7 +246,8 @@ fun AppNav(){
                     studentViewState = studentViewState,
                     onDeleteClick = {code : String ->
                         courseViewModel.removeCourse(code)
-                    }
+                    },
+                    context = context
                 )
             }
             composable<ProfileScreen> {

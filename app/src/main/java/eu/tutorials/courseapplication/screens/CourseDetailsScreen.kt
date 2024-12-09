@@ -1,5 +1,7 @@
 package eu.tutorials.courseapplication.screens
 
+import android.app.AlertDialog
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -14,6 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import eu.tutorials.courseapplication.Course
+import eu.tutorials.courseapplication.EnrolledCourse
 import eu.tutorials.courseapplication.MainViewModel
 import eu.tutorials.courseapplication.Student
 import eu.tutorials.courseapplication.navigation.CourseDetailsScreen
@@ -35,7 +39,8 @@ fun CourseDetailsScreen(
     viewState: MainViewModel.CoursesState,
     modifier: Modifier = Modifier,
     onSignUpClick:(String) -> Unit,
-    studentViewState:Student
+    studentViewState:Student,
+    context: Context
 ){
     Box(modifier = modifier){
         when{
@@ -45,14 +50,27 @@ fun CourseDetailsScreen(
                 println(viewState.error)
             }
             else -> {
-                ShowCourseDetailsScreen(viewState, onSignUpClick, studentViewState)
+                ShowCourseDetailsScreen(viewState, onSignUpClick, studentViewState, context)
             }
         }
     }
 }
 
 @Composable
-fun ShowCourseDetailsScreen(viewState: MainViewModel.CoursesState, onSignUpClick: (String) -> Unit, studentViewState: Student) {
+fun ShowCourseDetailsScreen(viewState: MainViewModel.CoursesState, onSignUpClick: (String) -> Unit, studentViewState: Student, context: Context) {
+    val builder: AlertDialog.Builder = AlertDialog.Builder(context)
+    builder
+        .setMessage("Do you want enroll course ${viewState.courseDetails.name} ?")
+        .setTitle("Confirm enrollment")
+        .setPositiveButton("Yes") { dialog, which ->
+            onSignUpClick(viewState.courseDetails.code)
+            dialog.dismiss()
+        }
+        .setNegativeButton("No") { dialog, which ->
+            dialog.dismiss()
+        }
+
+    val dialog: AlertDialog = builder.create()
     Column(
         modifier = Modifier
             .padding(16.dp),
@@ -114,15 +132,26 @@ fun ShowCourseDetailsScreen(viewState: MainViewModel.CoursesState, onSignUpClick
                 .fillMaxWidth()
                 .padding(top = 6.dp)
         )
+
         Button(
-            onClick = { onSignUpClick(viewState.courseDetails.code) },
+            onClick = {
+                if (!studentViewState.enrolledCourses.any { it.courseId == viewState.courseDetails.code }){
+                    dialog.show()
+                }
+                      },
             enabled = !viewState.loading or !viewState.softLoading,
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
         ) {
             if (viewState.loading or viewState.softLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
             } else {
-                Text(text = "Sign Up!")
+                Text(
+                    text = if (!studentViewState.enrolledCourses.any { it.courseId == viewState.courseDetails.code })"Sign Up!" else "Already signed up!",
+                    color = if (!studentViewState.enrolledCourses.any { it.courseId == viewState.courseDetails.code }) Color.Black else Color(0xFF006400),
+                    style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                )
             }
         }
     }

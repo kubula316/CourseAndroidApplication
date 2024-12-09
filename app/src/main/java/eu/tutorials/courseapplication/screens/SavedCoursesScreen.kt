@@ -1,5 +1,7 @@
 package eu.tutorials.courseapplication.screens
 
+import android.app.AlertDialog
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -54,7 +56,8 @@ fun SavedCoursesScreen(
     onCourseClick: (Course) -> Unit,
     viewState: MainViewModel.CoursesState,
     studentViewState : Student,
-    onDeleteClick : (String) -> Unit
+    onDeleteClick : (String) -> Unit,
+    context:Context
 ){
     Box(modifier = modifier){
         when{
@@ -64,14 +67,14 @@ fun SavedCoursesScreen(
                 println(viewState.error)
             }
             else -> {
-                ShowSavedCoursesScreen(courses = viewState.savedCourses, onCourseClick, viewState, studentViewState, onDeleteClick)
+                ShowSavedCoursesScreen(courses = viewState.savedCourses, onCourseClick, viewState, studentViewState, onDeleteClick, context)
             }
         }
     }
 }
 
 @Composable
-fun ShowSavedCoursesScreen(courses: List<Course>, onCategoryClick:(Course) -> Unit, viewState: MainViewModel.CoursesState, studentViewState: Student, onDeleteClick: (String) -> Unit) {
+fun ShowSavedCoursesScreen(courses: List<Course>, onCategoryClick:(Course) -> Unit, viewState: MainViewModel.CoursesState, studentViewState: Student, onDeleteClick: (String) -> Unit, context: Context) {
     Column {
         LazyVerticalGrid(
             GridCells.Fixed(1), modifier = Modifier
@@ -79,7 +82,7 @@ fun ShowSavedCoursesScreen(courses: List<Course>, onCategoryClick:(Course) -> Un
                 .padding(8.dp)
         ) {
             items(courses){
-                    course -> SavedCourseItem(course = course, onCategoryClick, viewState, studentViewState, onDeleteClick)
+                    course -> SavedCourseItem(course = course, onCategoryClick, viewState, studentViewState, onDeleteClick, context)
             }
         }
     }
@@ -89,7 +92,19 @@ fun ShowSavedCoursesScreen(courses: List<Course>, onCategoryClick:(Course) -> Un
 
 
 @Composable
-fun SavedCourseItem(course: Course, onCategoryClick: (Course) -> Unit, viewState: MainViewModel.CoursesState, studentViewState: Student, onDeleteClick: (String) -> Unit) {
+fun SavedCourseItem(course: Course, onCategoryClick: (Course) -> Unit, viewState: MainViewModel.CoursesState, studentViewState: Student, onDeleteClick: (String) -> Unit, context: Context) {
+    val builder: AlertDialog.Builder = AlertDialog.Builder(context)
+    builder
+        .setMessage("Are you sure you want delete course ${course.name} ?")
+        .setTitle("Confirm delete")
+        .setPositiveButton("Yes") { dialog, which ->
+            onDeleteClick(course.code)
+            dialog.dismiss()
+        }
+        .setNegativeButton("No") { dialog, which ->
+            dialog.dismiss()
+        }
+    val dialog: AlertDialog = builder.create()
     Box(modifier = Modifier.padding(bottom = 12.dp)){
         Box(modifier = Modifier
             .background(
@@ -183,7 +198,7 @@ fun SavedCourseItem(course: Course, onCategoryClick: (Course) -> Unit, viewState
                         ),
                         modifier = Modifier.weight(1f)
                     )
-                    Icon(imageVector = Icons.Filled.Delete, contentDescription = "Remove Course", tint = Color.Red, modifier = Modifier.clickable { onDeleteClick(course.code) })
+                    Icon(imageVector = Icons.Filled.Delete, contentDescription = "Remove Course", tint = Color.Red, modifier = Modifier.clickable { dialog.show() })
                 }
 
 
