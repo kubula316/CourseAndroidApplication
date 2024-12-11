@@ -14,7 +14,6 @@ import kotlinx.coroutines.launch
 import eu.tutorials.courseapplication.service.AuthRequest
 import eu.tutorials.courseapplication.service.courseService
 import com.auth0.android.jwt.JWT
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -198,7 +197,7 @@ class MainViewModel : ViewModel() {
 
                 _authToken.value = response.token
 
-                val jwt: JWT = JWT(_authToken.value!!)
+                val jwt = JWT(_authToken.value!!)
                 val id: Long = jwt.getClaim("id").asLong()!!
 
 
@@ -305,13 +304,10 @@ class MainViewModel : ViewModel() {
     }
 
     fun logout() {
-        _coursesState.value = _coursesState.value.copy(isAuthenticated = false, lookingAtDetails = false, selectedItemIndex = 0,)
+        _coursesState.value = _coursesState.value.copy(isAuthenticated = false, lookingAtDetails = false, selectedItemIndex = 0)
         _studentDetails.value = studentDetails.value.copy(id = 0, firstName = "placeholder", lastName = "placeholder", email = "placeholder", status = Status.ACTIVE, enrolledCourses = emptyList(), profileImageUrl = "https://coursesapp.blob.core.windows.net/student-profile-image-container/BlankProfile.png")
         _authToken.value = ""
     }
-
-    private fun enrolledCourses(): List<EnrolledCourse> =
-        emptyList()
 
     fun updateSearchQuery(text: String) {
         _coursesState.value = _coursesState.value.copy(searchQuery = text)
@@ -352,8 +348,9 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             val file = uriToFile(context, uriString)
             if (file != null) {
-                val requestFile: RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), file)
-                val body : MultipartBody.Part = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
+                val requestFile: RequestBody =
+                    file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+                val body : MultipartBody.Part = MultipartBody.Part.createFormData("file", file.name, requestFile)
                 uploadImage(body)
             } else {
                 _coursesState.value = _coursesState.value.copy(

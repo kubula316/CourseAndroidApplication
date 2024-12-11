@@ -28,26 +28,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import eu.tutorials.courseapplication.Category
 import eu.tutorials.courseapplication.Course
-import eu.tutorials.courseapplication.CourseDto
-import eu.tutorials.courseapplication.CourseMember
-import eu.tutorials.courseapplication.Lecture
 import eu.tutorials.courseapplication.MainViewModel
-import eu.tutorials.courseapplication.Section
-import eu.tutorials.courseapplication.Status
 import eu.tutorials.courseapplication.Student
 
 @Composable
@@ -108,7 +98,7 @@ fun SavedCourseItem(course: Course, onCategoryClick: (Course) -> Unit, viewState
     Box(modifier = Modifier.padding(bottom = 12.dp)){
         Box(modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.07f,),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.07f),
                 shape = RoundedCornerShape(16.dp)
             )
             .padding(4.dp)

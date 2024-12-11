@@ -119,7 +119,7 @@ fun SectionBlock(section: Section, onLectureClick: (String, String) -> Unit, enr
             )
 
             if (isExpanded.value) {
-                section.lessons.forEach() { lesson ->
+                section.lessons.forEach { lesson ->
                     LessonBlock(lesson = lesson, onLectureClick = onLectureClick, enrolledCourse, onIconClick)
                 }
 
