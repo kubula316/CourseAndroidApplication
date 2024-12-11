@@ -2,6 +2,7 @@ package eu.tutorials.courseapplication.screens
 
 import android.app.AlertDialog
 import android.content.Context
+import android.view.View
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

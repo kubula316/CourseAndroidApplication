@@ -3,15 +3,19 @@ package eu.tutorials.courseapplication.service
 import eu.tutorials.courseapplication.Course
 import eu.tutorials.courseapplication.EnrolledCourse
 import eu.tutorials.courseapplication.Student
+import okhttp3.MultipartBody
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
+import java.io.File
 
 private val studentRetrofit = Retrofit.Builder().baseUrl("http://10.0.2.2:9000/student-service/").addConverterFactory(
     GsonConverterFactory.create()).build()
@@ -39,6 +43,15 @@ interface StudentService{
                                        @Query("courseId") courseId: String,
                                        @Query("lectureId") lectureId:String,
                                        @Header("Authorization") token: String) : Student
+
+    @Multipart
+    @POST("students/update")
+    suspend fun uploadProfileImage(
+        @Query("id") id: Long,
+        @Query("containerName") containerName: String,
+        @Part file: MultipartBody.Part,
+        @Header("Authorization") token: String
+    ): Student
 
 }
 

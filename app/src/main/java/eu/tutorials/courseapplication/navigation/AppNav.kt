@@ -262,7 +262,11 @@ fun AppNav(){
                         }
                         courseViewModel.logout()
                     },
-                    studentViewState = studentViewState)
+                    studentViewState = studentViewState,
+                    onIconUpdate = {uriString ->
+                        courseViewModel.uploadImageFromUri(context, uriString)
+                    }
+                )
             }
             composable<SearchTagScreen>{
                 SearchTagScreen(

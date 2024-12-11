@@ -1,5 +1,8 @@
 package eu.tutorials.courseapplication.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,6 +24,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,7 +49,8 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     viewState: MainViewModel.CoursesState,
     onLogoutClick : ()-> Unit,
-    studentViewState: Student
+    studentViewState: Student,
+    onIconUpdate : (String) -> Unit
 ){
     Box(modifier = modifier){
         when{
@@ -52,14 +60,22 @@ fun ProfileScreen(
                 println(viewState.error)
             }
             else -> {
-                ProfileShowScreen(viewState = viewState, onLogoutClick, studentViewState)
+                ProfileShowScreen(viewState = viewState, onLogoutClick, studentViewState, onIconUpdate)
             }
         }
     }
 }
 
 @Composable
-fun ProfileShowScreen(viewState: MainViewModel.CoursesState, onLogoutClick : ()-> Unit, studentViewState: Student) {
+fun ProfileShowScreen(viewState: MainViewModel.CoursesState, onLogoutClick : ()-> Unit, studentViewState: Student, onIconUpdate: (String) -> Unit) {
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            onIconUpdate(uri.toString())
+        }
+    }
+
     Column(
         modifier = Modifier
             .padding(4.dp),
@@ -71,8 +87,9 @@ fun ProfileShowScreen(viewState: MainViewModel.CoursesState, onLogoutClick : ()-
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(156.dp)
-                .clip(CircleShape) // clip to the circle shape
-                .border(4.dp, Color.Gray, CircleShape)//optional
+                .clip(CircleShape)
+                .border(3.dp, Color.Magenta, CircleShape)
+                .clickable { imagePickerLauncher.launch("image/*") }
         )
         Text(
             text = "${studentViewState.firstName} ${studentViewState.lastName}",

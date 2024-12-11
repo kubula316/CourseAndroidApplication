@@ -1,6 +1,7 @@
 package eu.tutorials.courseapplication
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -13,6 +14,13 @@ import kotlinx.coroutines.launch
 import eu.tutorials.courseapplication.service.AuthRequest
 import eu.tutorials.courseapplication.service.courseService
 import com.auth0.android.jwt.JWT
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+import java.io.FileOutputStream
 
 
 class MainViewModel : ViewModel() {
@@ -45,7 +53,7 @@ class MainViewModel : ViewModel() {
     }
 
     private fun markVideoAsWatched() {
-        if (_studentDetails.value.enrolledCourses.find { it.courseId == coursesState.value.courseDetails.code }!!.completedLecturesId.contains(_coursesState.value.playVideoLectureId)){
+        if (!_studentDetails.value.enrolledCourses.find { it.courseId == coursesState.value.courseDetails.code }!!.completedLecturesId.contains(_coursesState.value.playVideoLectureId)){
             viewModelScope.launch {
                 try{
                     val token = "Bearer ${_authToken.value}"
@@ -321,6 +329,55 @@ class MainViewModel : ViewModel() {
     fun turnOfLookingAtDetails(){
         _coursesState.value = _coursesState.value.copy(lookingAtDetails = false)
     }
+
+    private fun uriToFile(context: Context, uriString: String): File? {
+        val uri = Uri.parse(uriString)
+        return try {
+            val tempFile = File(context.cacheDir, "temp_image_${System.currentTimeMillis()}.jpg")
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                FileOutputStream(tempFile).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+            tempFile
+        } catch (e: Exception) {
+            _coursesState.value = _coursesState.value.copy(error = e.message)
+            null
+        }
+    }
+
+
+
+    fun uploadImageFromUri(context: Context, uriString: String) {
+        viewModelScope.launch {
+            val file = uriToFile(context, uriString)
+            if (file != null) {
+                val requestFile: RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), file)
+                val body : MultipartBody.Part = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
+                uploadImage(body)
+            } else {
+                _coursesState.value = _coursesState.value.copy(
+                    error = "Failed to convert URI to File"
+                )
+            }
+        }
+    }
+
+    private fun uploadImage(file : MultipartBody.Part){
+        viewModelScope.launch {
+            try {
+                val token = "Bearer ${_authToken.value}"
+                _coursesState.value = _coursesState.value.copy(loading = true)
+                val newStudent = studentService.uploadProfileImage(studentDetails.value.id, "student-profile-image-container", file, token)
+                _studentDetails.value = newStudent
+                _coursesState.value = _coursesState.value.copy(loading = false)
+            }catch (e:Exception){
+                _coursesState.value = _coursesState.value.copy(error = e.message, loading = false)
+            }
+        }
+
+    }
+
 
 
 
