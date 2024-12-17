@@ -1,5 +1,7 @@
 package eu.tutorials.courseapplication
 
+import android.app.Application
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import eu.tutorials.courseapplication.navigation.AppNav
 import eu.tutorials.courseapplication.ui.theme.CourseApplicationTheme
+import eu.tutorials.courseapplication.util.MainViewModelFactory
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

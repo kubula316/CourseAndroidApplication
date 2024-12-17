@@ -50,12 +50,16 @@ import eu.tutorials.courseapplication.screens.ProfileScreen
 import eu.tutorials.courseapplication.screens.SavedCoursesScreen
 import eu.tutorials.courseapplication.screens.SearchScreen
 import eu.tutorials.courseapplication.screens.SearchTagScreen
+import eu.tutorials.courseapplication.util.MainViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNav(){
+    val context : Context = LocalContext.current
     val navController = rememberNavController()
-    val courseViewModel: MainViewModel = viewModel()
+    val courseViewModel: MainViewModel = viewModel(
+        factory = MainViewModelFactory(context.applicationContext)
+    )
     val viewState by courseViewModel.coursesState
     val studentViewState by courseViewModel.studentDetails
     val items = listOf(
@@ -110,7 +114,6 @@ fun AppNav(){
 
     )
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
-    val context : Context = LocalContext.current
     courseViewModel.initializeExoPlayer(context)
     Scaffold(
         bottomBar = {if (viewState.isAuthenticated)
@@ -184,7 +187,7 @@ fun AppNav(){
             )
         }
     ) {paddingValues ->
-        NavHost(navController = navController, startDestination = LoginScreen) {
+        NavHost(navController = navController, startDestination = if (!viewState.isAuthenticated) LoginScreen else CoursesScreen) {
             composable<LoginScreen> {
                 LoginScreen(
                     modifier = Modifier

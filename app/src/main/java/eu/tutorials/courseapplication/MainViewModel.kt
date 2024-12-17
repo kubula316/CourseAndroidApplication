@@ -1,10 +1,11 @@
 package eu.tutorials.courseapplication
 
+import android.app.Application
 import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -14,6 +15,8 @@ import kotlinx.coroutines.launch
 import eu.tutorials.courseapplication.service.AuthRequest
 import eu.tutorials.courseapplication.service.courseService
 import com.auth0.android.jwt.JWT
+import eu.tutorials.courseapplication.service.RefreshRequest
+import eu.tutorials.courseapplication.util.TokenManager
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -22,19 +25,53 @@ import java.io.File
 import java.io.FileOutputStream
 
 
-class MainViewModel : ViewModel() {
+class MainViewModel(application: Application) : AndroidViewModel(application) {
+    private val appContext: Context = application.applicationContext
+
     private val _coursesState = mutableStateOf(CoursesState())
     val coursesState:State<CoursesState> = _coursesState
 
     private val _studentDetails = mutableStateOf(Student(id = 0, firstName = "placeholder", lastName = "placeholder", email = "placeholder", status = Status.ACTIVE, enrolledCourses = emptyList(), profileImageUrl = "https://coursesapp.blob.core.windows.net/student-profile-image-container/BlankProfile.png"))
     val studentDetails:State<Student> = _studentDetails
 
+    private val tokenManager = TokenManager(appContext)
+
     private val _authToken = mutableStateOf<String?>(null)
     val authToken: State<String?> = _authToken
+
+    private val _refreshToken = mutableStateOf<String?>(null)
+    val refreshToken: State<String?> = _refreshToken
+
+    init {
+        _authToken.value = tokenManager.getToken()
+        _refreshToken.value = tokenManager.getRefreshToken()
+        checkIsLoggedIn()
+        if (coursesState.value.isAuthenticated){
+            refreshToken(_refreshToken.value.toString())
+            loadCoursesDto()
+            loadStudentData()
+        }
+
+    }
+
+    fun checkIsLoggedIn(){
+        if (tokenManager.isTokenAvailable()){
+            _coursesState.value = _coursesState.value.copy(isAuthenticated = true)
+        }
+    }
+
+    fun autoLogin(){
+        refreshToken(_refreshToken.value.toString())
+        loadCoursesDto()
+    }
+
+
 
     private var _exoPlayer: ExoPlayer? = null
     val exoPlayer: ExoPlayer?
         get() = _exoPlayer
+
+
 
     fun initializeExoPlayer(context: Context) {
         if (_exoPlayer == null) {
@@ -173,8 +210,21 @@ class MainViewModel : ViewModel() {
         validateStudent(email, password)
     }
 
+    private fun isTokenExpired(): Boolean {
+        val token = _authToken.value ?: return true
+        return try {
+            val jwt = JWT(token)
+            println("ISTOKENEXPIRED ${token}")
+            val expiresAt = jwt.expiresAt ?: return true
+            println("ExpiresAt:${expiresAt}")
+            val currentTime = System.currentTimeMillis()
+            expiresAt.time <= currentTime
+        } catch (e: Exception) {
+            true
+        }
+    }
 
-    private suspend fun loadStudentData(id: Long) {
+    private suspend fun loadStudentDataById(id: Long) {
         val token = "Bearer ${_authToken.value}"
         val student : Student = studentService.getStudentData(id, token)
         _studentDetails.value = student
@@ -185,6 +235,33 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    private fun loadStudentData(){
+        viewModelScope.launch {
+            try {
+                val token = "Bearer ${_authToken.value}"
+                _coursesState.value = _coursesState.value.copy(loading = true)
+                val jwt = JWT(_authToken.value!!)
+                val id: Long = jwt.getClaim("id").asLong()!!
+                val student : Student = studentService.getStudentData(id, token)
+
+                _studentDetails.value = student
+
+                val enrolledCourses:List<String> = studentDetails.value.enrolledCourses.map { it.courseId }
+                if (enrolledCourses.isNotEmpty()){
+                    val savedCourses :List<Course> = courseService.getSavedCourses(enrolledCourses, token)
+                    _coursesState.value = _coursesState.value.copy(savedCourses= savedCourses)
+                }
+
+                _coursesState.value = _coursesState.value.copy(loading = false, isAuthenticated = true)
+            } catch (e: Exception){
+                _coursesState.value = _coursesState.value.copy(
+                    loading = false,
+                    error = "LoginError, ${e.message}"
+                )
+            }
+        }
+    }
+
 
 
     private fun validateStudent(email: String, password: String){
@@ -192,20 +269,43 @@ class MainViewModel : ViewModel() {
             try {
                 _coursesState.value = _coursesState.value.copy(loading = true)
                 val authRequest = AuthRequest(email, password)
-
                 val response = studentService.authenticateStudent(authRequest)
-
                 _authToken.value = response.token
-
+                _refreshToken.value = response.refreshToken
+                val tokenResponse = response.token
+                val refreshResponse = response.refreshToken
+                tokenManager.saveToken(tokenResponse, refreshResponse)
                 val jwt = JWT(_authToken.value!!)
                 val id: Long = jwt.getClaim("id").asLong()!!
-
-
-                loadStudentData(id)
+                loadStudentDataById(id)
                 loadCoursesDto()
                 _coursesState.value = _coursesState.value.copy(loading = false, isAuthenticated = true)
 
             } catch (e : Exception){
+                _coursesState.value = _coursesState.value.copy(
+                    loading = false,
+                    error = "LoginError, ${e.message}"
+                )
+            }
+
+        }
+    }
+
+    private fun refreshToken(refreshToken: String){
+        viewModelScope.launch {
+            try {
+                _coursesState.value = _coursesState.value.copy(loading = true)
+
+                val refreshRequest = RefreshRequest(refreshToken)
+                val response = studentService.refreshToken(refreshRequest)
+
+                tokenManager.saveToken(response.token, response.refreshToken)
+                _authToken.value = tokenManager.getToken()
+                _refreshToken.value = tokenManager.getRefreshToken()
+
+                _coursesState.value = _coursesState.value.copy(loading = false)
+
+            }catch (e : Exception){
                 _coursesState.value = _coursesState.value.copy(
                     loading = false,
                     error = "LoginError, ${e.message}"
@@ -304,9 +404,11 @@ class MainViewModel : ViewModel() {
     }
 
     fun logout() {
+        tokenManager.clearToken()
+        _authToken.value = null
+
         _coursesState.value = _coursesState.value.copy(isAuthenticated = false, lookingAtDetails = false, selectedItemIndex = 0)
         _studentDetails.value = studentDetails.value.copy(id = 0, firstName = "placeholder", lastName = "placeholder", email = "placeholder", status = Status.ACTIVE, enrolledCourses = emptyList(), profileImageUrl = "https://coursesapp.blob.core.windows.net/student-profile-image-container/BlankProfile.png")
-        _authToken.value = ""
     }
 
     fun updateSearchQuery(text: String) {

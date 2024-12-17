@@ -28,6 +28,9 @@ interface StudentService{
     @POST("auth/authenticate")
     suspend fun authenticateStudent(@Body authRequest: AuthRequest): AutResponse
 
+    @POST("auth/refresh-token")
+    suspend fun refreshToken(@Body refreshToken: RefreshRequest): AutResponse
+
     @GET("students/{id}")
     suspend fun getStudentData(@Path("id") id : Long,
                                @Header("Authorization") token: String): Student
@@ -53,6 +56,8 @@ interface StudentService{
         @Header("Authorization") token: String
     ): Student
 
+
+
 }
 
 data class AuthRequest(
@@ -61,5 +66,10 @@ data class AuthRequest(
 )
 
 data class AutResponse(
-    val token: String
+    val token: String,
+    val refreshToken: String
+)
+
+data class RefreshRequest(
+    val refreshToken: String
 )
