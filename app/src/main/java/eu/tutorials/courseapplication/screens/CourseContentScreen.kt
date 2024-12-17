@@ -88,7 +88,6 @@ fun SectionShowScreen(sections: List<Section>,
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        println(enrolledCourse)
         items(sections) { section ->
             SectionBlock(section, onLectureClick, enrolledCourse, onIconClick)
         }

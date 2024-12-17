@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
+
 class TokenManager(context: Context) {
 
     private val sharedPreferences = EncryptedSharedPreferences.create(
@@ -15,19 +16,19 @@ class TokenManager(context: Context) {
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
-
+    @Synchronized
     fun saveToken(token: String, refreshToken: String) {
         with(sharedPreferences.edit()) {
             putString("jwt_token", token)
             putString("refresh_token", refreshToken)
-            apply()
+            commit()
         }
     }
-
+    @Synchronized
     fun getToken(): String? {
         return sharedPreferences.getString("jwt_token", null)
     }
-
+    @Synchronized
     fun getRefreshToken(): String? {
         return sharedPreferences.getString("refresh_token", null)
     }

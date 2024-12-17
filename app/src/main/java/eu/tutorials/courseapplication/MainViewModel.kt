@@ -15,8 +15,11 @@ import kotlinx.coroutines.launch
 import eu.tutorials.courseapplication.service.AuthRequest
 import eu.tutorials.courseapplication.service.courseService
 import com.auth0.android.jwt.JWT
+import eu.tutorials.courseapplication.service.AutResponse
 import eu.tutorials.courseapplication.service.RefreshRequest
 import eu.tutorials.courseapplication.util.TokenManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -47,24 +50,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _refreshToken.value = tokenManager.getRefreshToken()
         checkIsLoggedIn()
         if (coursesState.value.isAuthenticated){
-            refreshToken(_refreshToken.value.toString())
-            loadCoursesDto()
-            loadStudentData()
+            refreshAllData(_refreshToken.value.toString())
         }
 
     }
 
-    fun checkIsLoggedIn(){
+    private fun checkIsLoggedIn(){
         if (tokenManager.isTokenAvailable()){
             _coursesState.value = _coursesState.value.copy(isAuthenticated = true)
         }
     }
-
-    fun autoLogin(){
-        refreshToken(_refreshToken.value.toString())
-        loadCoursesDto()
-    }
-
 
 
     private var _exoPlayer: ExoPlayer? = null
@@ -108,11 +103,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun changeLectureCompletion(lectureId: String, isCompleted:Boolean){
         if (!_coursesState.value.softLoading){
             _coursesState.value = _coursesState.value.copy(softLoading = true)
-            val token = "Bearer ${_authToken.value}"
             if (!isCompleted){
                 viewModelScope.launch {
                     try {
+                        var token = "Bearer ${_authToken.value}"
+                        if (isTokenExpired()){
+                            println("PRZED"+_authToken.value.toString())
+                            val response = refreshToken(_refreshToken.value.toString())
+                            _refreshToken.value = response.refreshToken
+                            _authToken.value = response.token
+                            token = "Bearer ${response.token}"
+                            println("PO"+_authToken.value.toString())
+                        }
                         val updatedStudent:Student = studentService.markLectureAsCompleted(courseId = coursesState.value.courseDetails.code, studentId = studentDetails.value.id, lectureId = lectureId, token = token)
+                        println("DUPA")
                         _studentDetails.value = updatedStudent
                         _coursesState.value = _coursesState.value.copy(softLoading = false)
                     }catch (e : Exception){
@@ -125,7 +129,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }else{
                 viewModelScope.launch {
                     try {
+                        var token = "Bearer ${_authToken.value}"
+                        if (isTokenExpired()){
+                            println("PRZED"+_authToken.value.toString())
+                            val response = refreshToken(_refreshToken.value.toString())
+                            _refreshToken.value = response.refreshToken
+                            _authToken.value = response.token
+                            token = "Bearer ${response.token}"
+                            println("PO"+_authToken.value.toString())
+                        }
+                        println("DUPA2")
                         val updatedStudent:Student = studentService.markLectureAsUncompleted(courseId = coursesState.value.courseDetails.code, studentId = studentDetails.value.id, lectureId = lectureId, token = token)
+
                         _coursesState.value = _coursesState.value.copy(softLoading = false)
                         _studentDetails.value = updatedStudent
                     }catch (e : Exception){
@@ -214,10 +229,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val token = _authToken.value ?: return true
         return try {
             val jwt = JWT(token)
-            println("ISTOKENEXPIRED ${token}")
+            println("TOKEN WYGASNIE: " + jwt.expiresAt?.time)
+            println("AKTUALNY CZAS: " + System.currentTimeMillis())
             val expiresAt = jwt.expiresAt ?: return true
-            println("ExpiresAt:${expiresAt}")
             val currentTime = System.currentTimeMillis()
+            println(expiresAt.time <= currentTime)
             expiresAt.time <= currentTime
         } catch (e: Exception) {
             true
@@ -291,18 +307,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun refreshToken(refreshToken: String){
+    private fun refreshAllData(refreshToken: String){
         viewModelScope.launch {
             try {
                 _coursesState.value = _coursesState.value.copy(loading = true)
 
-                val refreshRequest = RefreshRequest(refreshToken)
-                val response = studentService.refreshToken(refreshRequest)
-
-                tokenManager.saveToken(response.token, response.refreshToken)
-                _authToken.value = tokenManager.getToken()
-                _refreshToken.value = tokenManager.getRefreshToken()
-
+                val response = refreshToken(refreshToken)
+                val token = "Bearer ${response.token}"
+                val courseDTO = courseService.getAllCoursesDto(token)
+                _coursesState.value = _coursesState.value.copy(list = courseDTO)
+                val jwt = JWT(response.token)
+                val id: Long = jwt.getClaim("id").asLong()!!
+                val student : Student = studentService.getStudentData(id, token)
+                _studentDetails.value = student
+                val enrolledCourses:List<String> = studentDetails.value.enrolledCourses.map { it.courseId }
+                if (enrolledCourses.isNotEmpty()){
+                    val savedCourses :List<Course> = courseService.getSavedCourses(enrolledCourses, token)
+                    _coursesState.value = _coursesState.value.copy(savedCourses= savedCourses)
+                }
                 _coursesState.value = _coursesState.value.copy(loading = false)
 
             }catch (e : Exception){
@@ -312,6 +334,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
         }
+    }
+
+    private suspend fun refreshToken(refreshToken: String): AutResponse {
+        val refreshRequest = RefreshRequest(refreshToken)
+        val response = studentService.refreshToken(refreshRequest)
+        _authToken.value = response.token
+        _refreshToken.value = response.refreshToken
+        tokenManager.saveToken(response.token, response.refreshToken)
+        println("response token:: "+response.token)
+        println("refresh token:: "+response.refreshToken)
+        println("token from manager: "+ tokenManager.getToken())
+        println("refresh token from manager: "+ tokenManager.getRefreshToken())
+        return response
     }
 
     fun loadCoursesDto(){
