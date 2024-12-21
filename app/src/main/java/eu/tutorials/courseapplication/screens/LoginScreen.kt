@@ -1,5 +1,6 @@
 package eu.tutorials.courseapplication.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 
 import androidx.compose.material3.Button
@@ -34,14 +36,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.res.painterResource
 import eu.tutorials.courseapplication.MainViewModel
+import eu.tutorials.courseapplication.R
+import eu.tutorials.courseapplication.ui.theme.MagentaLightBackground
+import eu.tutorials.courseapplication.ui.theme.MagentaPrimary
 
 
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
     onLoginClick: (String, String) -> Unit,
-    viewState:MainViewModel.CoursesState
+    viewState: MainViewModel.CoursesState
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -50,18 +57,34 @@ fun LoginScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(MagentaLightBackground) // Light magenta background
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Welcome Back!", style = MaterialTheme.typography.titleLarge)
+        // Image above login panel
+        Image(
+            painter = painterResource(id = R.drawable.student), // Replace with your drawable resource
+            contentDescription = "Login Image",
+            modifier = Modifier
+                .size(256.dp)
+                .padding(bottom = 16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Welcome Back!",
+            style = MaterialTheme.typography.titleLarge,
+            color = MagentaPrimary
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
+            label = { Text("Email", color = MagentaPrimary) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
@@ -72,7 +95,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
+            label = { Text("Password", color = MagentaPrimary) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -80,7 +103,7 @@ fun LoginScreen(
             trailingIcon = {
                 val icon = if (isPasswordVisible) Icons.Default.Add else Icons.Default.Close
                 IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                    Icon(imageVector = icon, contentDescription = null)
+                    Icon(imageVector = icon, contentDescription = null, tint = MagentaPrimary)
                 }
             }
         )
@@ -94,15 +117,20 @@ fun LoginScreen(
 
         Button(
             onClick = { onLoginClick(email, password) },
-            enabled = !viewState.loading,
-            modifier = Modifier.fillMaxWidth()
+            enabled = !viewState.loading && !viewState.softLoading,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MagentaPrimary, shape = RoundedCornerShape(0.dp)), // Square shape
+            colors = ButtonDefaults.buttonColors(containerColor = MagentaPrimary)
         ) {
             if (viewState.loading) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color.White
+                )
             } else {
-                Text(text = "Login")
+                Text(text = "Login", color = Color.White)
             }
         }
     }
 }
-

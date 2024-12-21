@@ -18,8 +18,6 @@ import com.auth0.android.jwt.JWT
 import eu.tutorials.courseapplication.service.AutResponse
 import eu.tutorials.courseapplication.service.RefreshRequest
 import eu.tutorials.courseapplication.util.TokenManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -87,7 +85,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (!_studentDetails.value.enrolledCourses.find { it.courseId == coursesState.value.courseDetails.code }!!.completedLecturesId.contains(_coursesState.value.playVideoLectureId)){
             viewModelScope.launch {
                 try{
-                    val token = "Bearer ${_authToken.value}"
+                    var token = "Bearer ${_authToken.value}"
+                    token = checkAndRefreshToken(token)
                     val updatedStudent:Student = studentService.markLectureAsCompleted(studentDetails.value.id, coursesState.value.courseDetails.code, coursesState.value.playVideoLectureId, token)
                     _studentDetails.value = updatedStudent
                 }catch (e : Exception){
@@ -107,14 +106,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 viewModelScope.launch {
                     try {
                         var token = "Bearer ${_authToken.value}"
-                        if (isTokenExpired()){
-                            println("PRZED"+_authToken.value.toString())
-                            val response = refreshToken(_refreshToken.value.toString())
-                            _refreshToken.value = response.refreshToken
-                            _authToken.value = response.token
-                            token = "Bearer ${response.token}"
-                            println("PO"+_authToken.value.toString())
-                        }
+                        token = checkAndRefreshToken(token)
                         val updatedStudent:Student = studentService.markLectureAsCompleted(courseId = coursesState.value.courseDetails.code, studentId = studentDetails.value.id, lectureId = lectureId, token = token)
                         println("DUPA")
                         _studentDetails.value = updatedStudent
@@ -155,11 +147,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-     fun enrollToCourse(code:String){
+    private suspend fun MainViewModel.checkAndRefreshToken(token: String): String {
+        var token1 = token
+        if (isTokenExpired()) {
+            println("PRZED" + _authToken.value.toString())
+            val response = refreshToken(_refreshToken.value.toString())
+            _refreshToken.value = response.refreshToken
+            _authToken.value = response.token
+            token1 = "Bearer ${response.token}"
+            println("PO" + _authToken.value.toString())
+        }
+        return token1
+    }
+
+    fun enrollToCourse(code:String){
         if (!_coursesState.value.softLoading){
-            val token = "Bearer ${_authToken.value}"
             viewModelScope.launch {
                 try {
+                    var token = "Bearer ${_authToken.value}"
+                    token = checkAndRefreshToken(token)
                     _coursesState.value = _coursesState.value.copy(softLoading = true)
                     val course:Course = courseService.addStudentToCourse(code,studentDetails.value.id,token)
                     val newEnrolledCoursesList = studentDetails.value.enrolledCourses
@@ -180,8 +186,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun removeCourse(code:String){
         viewModelScope.launch {
             try {
+                var token = "Bearer ${_authToken.value}"
+                token = checkAndRefreshToken(token)
                 _coursesState.value = _coursesState.value.copy(loading = true)
-                val token = "Bearer ${_authToken.value}"
                 courseService.removeCourse(code, studentDetails.value.email, token)
                 val newEnrolledCourses: List<EnrolledCourse> = studentDetails.value.enrolledCourses
                 val mutableCourses = newEnrolledCourses.toMutableList()
@@ -241,7 +248,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun loadStudentDataById(id: Long) {
-        val token = "Bearer ${_authToken.value}"
+        var token = "Bearer ${_authToken.value}"
+        token = checkAndRefreshToken(token)
         val student : Student = studentService.getStudentData(id, token)
         _studentDetails.value = student
         val enrolledCourses:List<String> = studentDetails.value.enrolledCourses.map { it.courseId }
@@ -254,7 +262,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun loadStudentData(){
         viewModelScope.launch {
             try {
-                val token = "Bearer ${_authToken.value}"
+                var token = "Bearer ${_authToken.value}"
+                token = checkAndRefreshToken(token)
                 _coursesState.value = _coursesState.value.copy(loading = true)
                 val jwt = JWT(_authToken.value!!)
                 val id: Long = jwt.getClaim("id").asLong()!!
@@ -356,7 +365,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun fetchCoursesDto(){
         viewModelScope.launch{
             try{
-                val token = "Bearer ${_authToken.value}"
+                var token = "Bearer ${_authToken.value}"
+                token = checkAndRefreshToken(token)
                 _coursesState.value = _coursesState.value.copy(loading = true)
                 val response = courseService.getAllCoursesDto(token)
                 _coursesState.value = _coursesState.value.copy(loading = false, list = response)
@@ -377,7 +387,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun fetchCourse(courseId: String) {
         viewModelScope.launch{
             try{
-                val token = "Bearer ${_authToken.value}"
+                var token = "Bearer ${_authToken.value}"
+                token = checkAndRefreshToken(token)
                 _coursesState.value = _coursesState.value.copy(loading = true)
 
                 val response = courseService.getCourse(courseId, token)
@@ -395,7 +406,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun searchCoursesByTagsOrName(searchQuery: String) {
         viewModelScope.launch{
             try{
-                val token = "Bearer ${_authToken.value}"
+                var token = "Bearer ${_authToken.value}"
+                token = checkAndRefreshToken(token)
                 _coursesState.value = _coursesState.value.copy(loading = true)
                 val response = courseService.getCoursesByTagsOrName(searchQuery, token)
                 _coursesState.value = _coursesState.value.copy(loading = false, searchedCourses = response)
@@ -412,7 +424,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun searchCoursesByCategory(category: String) {
         viewModelScope.launch{
             try{
-                val token = "Bearer ${_authToken.value}"
+                var token = "Bearer ${_authToken.value}"
+                token = checkAndRefreshToken(token)
                 _coursesState.value = _coursesState.value.copy(loading = true)
                 val response = courseService.getCoursesByCategory(category, token)
                 _coursesState.value = _coursesState.value.copy(loading = false, searchedCourses = response)
@@ -441,7 +454,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun logout() {
         tokenManager.clearToken()
         _authToken.value = null
-
+        _refreshToken.value = null
         _coursesState.value = _coursesState.value.copy(isAuthenticated = false, lookingAtDetails = false, selectedItemIndex = 0)
         _studentDetails.value = studentDetails.value.copy(id = 0, firstName = "placeholder", lastName = "placeholder", email = "placeholder", status = Status.ACTIVE, enrolledCourses = emptyList(), profileImageUrl = "https://coursesapp.blob.core.windows.net/student-profile-image-container/BlankProfile.png")
     }
@@ -500,8 +513,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun uploadImage(file : MultipartBody.Part){
         viewModelScope.launch {
             try {
-                val token = "Bearer ${_authToken.value}"
                 _coursesState.value = _coursesState.value.copy(loading = true)
+                var token = "Bearer ${_authToken.value}"
+                token = checkAndRefreshToken(token)
                 val newStudent = studentService.uploadProfileImage(studentDetails.value.id, "student-profile-image-container", file, token)
                 _studentDetails.value = newStudent
                 _coursesState.value = _coursesState.value.copy(loading = false)

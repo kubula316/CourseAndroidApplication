@@ -73,6 +73,8 @@ dependencies {
     implementation ("androidx.media3:media3-ui:1.4.1")
     //Token Security
     implementation (libs.androidx.security.crypto)
+    // system UI Controller
+    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
 
 
 

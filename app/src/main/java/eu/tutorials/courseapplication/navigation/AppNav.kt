@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,7 @@ import androidx.navigation.compose.rememberNavController
 import eu.tutorials.courseapplication.MainViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import eu.tutorials.courseapplication.Course
 import eu.tutorials.courseapplication.screens.CourseContentScreen
 import eu.tutorials.courseapplication.screens.CourseDetailsScreen
@@ -50,6 +52,7 @@ import eu.tutorials.courseapplication.screens.ProfileScreen
 import eu.tutorials.courseapplication.screens.SavedCoursesScreen
 import eu.tutorials.courseapplication.screens.SearchScreen
 import eu.tutorials.courseapplication.screens.SearchTagScreen
+import eu.tutorials.courseapplication.ui.theme.MagentaPrimary
 import eu.tutorials.courseapplication.util.MainViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -114,6 +117,15 @@ fun AppNav(){
 
     )
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val systemUiController = rememberSystemUiController()
+
+    // Apply the system bar color
+    SideEffect {
+        systemUiController.setSystemBarsColor(
+            color =  MagentaPrimary,
+            darkIcons = true // Light icons for contrast
+        )
+    }
     courseViewModel.initializeExoPlayer(context)
     Scaffold(
         bottomBar = {if (viewState.isAuthenticated)
