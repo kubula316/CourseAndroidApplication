@@ -28,6 +28,9 @@ interface StudentService{
     @POST("auth/authenticate")
     suspend fun authenticateStudent(@Body authRequest: AuthRequest): AutResponse
 
+    @POST("auth/register")
+    suspend fun registerStudent(@Body registerRequest : RegisterRequest): AutResponse
+
     @POST("auth/refresh-token")
     suspend fun refreshToken(@Body refreshToken: RefreshRequest): AutResponse
 
@@ -59,6 +62,13 @@ interface StudentService{
 
 
 }
+
+data class RegisterRequest(
+    val firstname: String,
+    val lastname : String,
+    val email: String,
+    val password: String
+)
 
 data class AuthRequest(
     val email: String,

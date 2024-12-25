@@ -13,8 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,35 +32,31 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
 import eu.tutorials.courseapplication.MainViewModel
 import eu.tutorials.courseapplication.R
+import eu.tutorials.courseapplication.service.RegisterRequest
 import eu.tutorials.courseapplication.ui.theme.MagentaLightBackground
 import eu.tutorials.courseapplication.ui.theme.MagentaPrimary
 
-
 @Composable
-fun LoginScreen(
+fun RegistrationScreen(
     modifier: Modifier = Modifier,
-    onLoginClick: (String, String) -> Unit,
-    onRegisterClick: () -> Unit,
+    onRegisterClick: (RegisterRequest) -> Unit,
+    onBackClick: () -> Unit,
     viewState: MainViewModel.CoursesState
-) {
+){
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -65,25 +64,40 @@ fun LoginScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
-    ) {
+    ){
         Image(
-            painter = painterResource(id = R.drawable.student),
-            contentDescription = "Login Image",
+            painter = painterResource(id = R.drawable.registration),
+            contentDescription = "Register Image",
             modifier = Modifier
                 .size(256.dp)
                 .padding(bottom = 16.dp)
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         Text(
-            text = "Welcome Back!",
+            text = "Registration",
             style = MaterialTheme.typography.titleLarge,
             color = MagentaPrimary
         )
-
         Spacer(modifier = Modifier.height(24.dp))
-
+        OutlinedTextField(
+            value = firstName,
+            onValueChange = { firstName = it },
+            label = { Text("Firstname", color = MagentaPrimary) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+            textStyle = TextStyle(color = MagentaPrimary, fontSize = 18.sp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            value = lastName,
+            onValueChange = { lastName = it },
+            label = { Text("Lastname", color = MagentaPrimary) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+            textStyle = TextStyle(color = MagentaPrimary, fontSize = 18.sp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -93,9 +107,7 @@ fun LoginScreen(
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             textStyle = TextStyle(color = MagentaPrimary, fontSize = 18.sp)
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
         OutlinedTextField(
             value = password,
             textStyle = TextStyle(color = MagentaPrimary, fontSize = 22.sp),
@@ -111,18 +123,18 @@ fun LoginScreen(
                     Icon(imageVector = icon, contentDescription = null, tint = MagentaPrimary)
                 }
             }
-
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         if (viewState.error != null) {
+            Spacer(modifier = Modifier.height(16.dp))
             Text(text = viewState.error, color = MaterialTheme.colorScheme.error)
             Spacer(modifier = Modifier.height(8.dp))
         }
-
+        Spacer(modifier = Modifier.height(16.dp))
         Button(
-            onClick = { onLoginClick(email, password) },
+            onClick = {
+                val registerRequest = RegisterRequest(firstName, lastName, email, password)
+                onRegisterClick(registerRequest)
+                      },
             enabled = !viewState.loading && !viewState.softLoading,
             modifier = Modifier
                 .fillMaxWidth()
@@ -135,19 +147,17 @@ fun LoginScreen(
                     color = Color.White
                 )
             } else {
-                Text(text = "Login", color = Color.White, fontSize = 20.sp)
+                Text(text = "Register", color = Color.White, fontSize = 20.sp)
             }
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
+        Spacer(modifier = Modifier.height(14.dp))
         Text(
-            text = "Sign up",
+            text = "Back",
             style = MaterialTheme.typography.headlineMedium,
             color = Color.Blue,
             fontSize = 16.sp,
             modifier = Modifier.clickable {
-                onRegisterClick()
+                onBackClick()
             }
         )
     }

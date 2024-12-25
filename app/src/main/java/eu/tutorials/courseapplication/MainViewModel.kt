@@ -17,6 +17,7 @@ import eu.tutorials.courseapplication.service.courseService
 import com.auth0.android.jwt.JWT
 import eu.tutorials.courseapplication.service.AutResponse
 import eu.tutorials.courseapplication.service.RefreshRequest
+import eu.tutorials.courseapplication.service.RegisterRequest
 import eu.tutorials.courseapplication.util.TokenManager
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -38,10 +39,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val tokenManager = TokenManager(appContext)
 
     private val _authToken = mutableStateOf<String?>(null)
-    val authToken: State<String?> = _authToken
 
     private val _refreshToken = mutableStateOf<String?>(null)
-    val refreshToken: State<String?> = _refreshToken
 
     init {
         _authToken.value = tokenManager.getToken()
@@ -287,7 +286,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-
+    fun registerStudent(registerResponse : RegisterRequest){
+        viewModelScope.launch {
+            try {
+                println(registerResponse)
+                tokenManager.clearToken()
+                _coursesState.value = _coursesState.value.copy(loading = true)
+                val response = studentService.registerStudent(registerResponse)
+                _authToken.value = response.token
+                _refreshToken.value = response.refreshToken
+                val tokenResponse = response.token
+                val refreshResponse = response.refreshToken
+                tokenManager.saveToken(tokenResponse, refreshResponse)
+                val jwt = JWT(_authToken.value!!)
+                val id: Long = jwt.getClaim("id").asLong()!!
+                loadStudentDataById(id)
+                loadCoursesDto()
+                _coursesState.value = _coursesState.value.copy(loading = false, isAuthenticated = true)
+            } catch (e: Exception){
+                _coursesState.value = _coursesState.value.copy(loading = false, error = e.message)
+            }
+        }
+    }
 
     private fun validateStudent(email: String, password: String){
         viewModelScope.launch {

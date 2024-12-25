@@ -1,6 +1,7 @@
 package eu.tutorials.courseapplication.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import eu.tutorials.courseapplication.CourseDto
 import eu.tutorials.courseapplication.MainViewModel
+import eu.tutorials.courseapplication.ui.theme.MagentaLightBackground
 
 @Composable
 fun SearchTagScreen(
@@ -37,7 +39,7 @@ fun SearchTagScreen(
     onCourseClick: (CourseDto) -> Unit,
     viewState: MainViewModel.CoursesState
 ){
-    Box(modifier = modifier){
+    Box(modifier = modifier.background(MagentaLightBackground)){
         when{
             viewState.loading -> {
                 CircularProgressIndicator(

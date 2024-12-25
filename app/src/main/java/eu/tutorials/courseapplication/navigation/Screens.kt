@@ -33,4 +33,7 @@ object SearchTagScreen
 @Serializable
 object CourseContentScreen
 
+@Serializable
+object RegistrationScreen
+
 

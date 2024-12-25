@@ -1,9 +1,11 @@
 package eu.tutorials.courseapplication.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,33 +26,48 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import eu.tutorials.courseapplication.CourseDto
 import eu.tutorials.courseapplication.MainViewModel
+import eu.tutorials.courseapplication.ui.theme.MagentaItemColor
+import eu.tutorials.courseapplication.ui.theme.MagentaLightBackground
+import eu.tutorials.courseapplication.ui.theme.MagentaPrimary
 
 @Composable
 fun CoursesScreen(
     modifier: Modifier = Modifier,
     onCourseClick: (CourseDto) -> Unit,
     viewState: MainViewModel.CoursesState
-){
-    Box(modifier = modifier){
-        when{
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MagentaLightBackground) // Use the saved color
+    ) {
+        when {
             viewState.loading -> {
                 CircularProgressIndicator(
                     modifier = Modifier
-                        .size(48.dp) // Adjust the size as needed
+                        .size(48.dp)
                         .align(Alignment.Center),
                     strokeWidth = 4.dp,
-                    strokeCap = StrokeCap.Butt,
-                    color = Color.Magenta
+                    strokeCap = StrokeCap.Round, // Rounded stroke for a modern feel
+                    color = MagentaPrimary // Use the saved primary color
                 )
             }
-            viewState.error != null -> { Text(text = "${viewState.error}")
-                println(viewState.error)
+            viewState.error != null -> {
+                Text(
+                    text = "Error: ${viewState.error}",
+                    color = Color.Red,
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    ),
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
             else -> {
                 CoursesShowScreen(courses = viewState.list, onCourseClick)
@@ -60,71 +77,69 @@ fun CoursesScreen(
 }
 
 @Composable
-fun CoursesShowScreen(courses: List<CourseDto>, onCategoryClick:(CourseDto) -> Unit) {
-    LazyVerticalGrid(GridCells.Fixed(2), modifier = Modifier
-        .fillMaxSize()) {
-        items(courses){
-                course -> CourseItem(course = course, onCategoryClick)
+fun CoursesShowScreen(courses: List<CourseDto>, onCourseClick: (CourseDto) -> Unit) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(2.dp) // Add spacing between items
+    ) {
+        items(courses) { course ->
+            CourseItem(course = course, onCourseClick)
         }
     }
 }
 
 @Composable
-fun CourseItem(course: CourseDto, onCategoryClick: (CourseDto) -> Unit) {
+fun CourseItem(course: CourseDto, onCourseClick: (CourseDto) -> Unit) {
     Column(
         modifier = Modifier
-            .padding(4.dp)
-            .clickable { onCategoryClick(course) },
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(6.dp)
+            .clip(RoundedCornerShape(16.dp)) // Add a rounded corner for the card
+            .background(MagentaItemColor) // Card background color
+            .clickable { onCourseClick(course) }
+            .padding(8.dp), // Internal padding
+        horizontalAlignment = Alignment.Start
     ) {
         Image(
             painter = rememberAsyncImagePainter(course.imageUrl),
-            contentDescription = "Category Image",
+            contentDescription = "Course Image",
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
-                .clip(RoundedCornerShape(32.dp))
+                .clip(RoundedCornerShape(16.dp))
         )
         Text(
             text = course.name,
-            color = Color.White,
+            color = MagentaPrimary, // Use the primary color
             style = TextStyle(
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Left,
-                fontSize = 24.sp
+                fontSize = 20.sp,
             ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp)
+            minLines = 2,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 8.dp)
         )
-        if (course.author != null){
+        course.author?.let { author ->
             Text(
-                text = course.author,
-                color = Color.LightGray,
+                text = "By $author",
+                color = Color.Gray,
                 style = TextStyle(
                     fontWeight = FontWeight.Light,
-                    textAlign = TextAlign.Left,
-                    fontSize = 16.sp
+                    fontSize = 14.sp
                 ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 2.dp)
+                modifier = Modifier.padding(top = 4.dp)
             )
         }
-            Text(
-                text = "Members: ${course.participantsNumber}/${course.participantsLimit}",
-                color = if (course.participantsNumber < course.participantsLimit){Color.Magenta} else Color.Red,
-                style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Left,
-                    fontSize = 16.sp
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 2.dp)
-                )
-
-
+        Text(
+            text = "Members: ${course.participantsNumber}/${course.participantsLimit}",
+            color = if (course.participantsNumber < course.participantsLimit) MagentaPrimary else Color.Red,
+            style = TextStyle(
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp
+            ),
+            modifier = Modifier.padding(top = 4.dp)
+        )
     }
 }

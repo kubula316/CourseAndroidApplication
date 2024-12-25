@@ -35,6 +35,9 @@ import coil.compose.rememberAsyncImagePainter
 import eu.tutorials.courseapplication.Category
 import eu.tutorials.courseapplication.CourseDto
 import eu.tutorials.courseapplication.MainViewModel
+import eu.tutorials.courseapplication.ui.theme.MagentaItemColor
+import eu.tutorials.courseapplication.ui.theme.MagentaLightBackground
+import eu.tutorials.courseapplication.ui.theme.MagentaPrimary
 import java.util.Locale
 
 
@@ -44,7 +47,7 @@ fun SearchScreen(
     onCategoryClick: (String) -> Unit,
     viewState: MainViewModel.CoursesState
 ){
-    Box(modifier = modifier){
+    Box(modifier = modifier.background(MagentaLightBackground)){
         when{
             viewState.loading -> {
                 CircularProgressIndicator(
@@ -76,6 +79,7 @@ fun SearchShowScreen(onCategoryClick: (String) -> Unit) {
         Text(
             text = "Browse Categories:",
             style = MaterialTheme.typography.titleLarge,
+            color = MagentaPrimary,
             modifier = Modifier
                 .padding(bottom = 12.dp)
                 .align(Alignment.Start)
@@ -95,18 +99,19 @@ fun SearchShowScreen(onCategoryClick: (String) -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            color = MagentaItemColor,
                             shape = RoundedCornerShape(12.dp)
                         )
                         .clickable { onCategoryClick(course.name) }
-                        .padding(16.dp)
+                        .padding(20.dp)
                 ) {
                     Text(
                         text = course.toString().lowercase(Locale.getDefault())
                             .replaceFirstChar { it.uppercase() },
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontWeight = FontWeight.Medium,
-                            color = Color.White
+                            color = MagentaPrimary,
+                            fontSize = 16.sp
                         ),
                         modifier = Modifier.align(Alignment.CenterStart)
                     )
