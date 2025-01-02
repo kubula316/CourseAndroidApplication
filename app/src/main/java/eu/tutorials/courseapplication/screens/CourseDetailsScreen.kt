@@ -4,16 +4,31 @@ import android.app.AlertDialog
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -100,8 +115,7 @@ fun ShowCourseDetailsScreen(
         modifier = Modifier
             .padding(16.dp)
             .fillMaxSize()
-
-            .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp)),
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
@@ -111,8 +125,8 @@ fun ShowCourseDetailsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
-                .clip(RoundedCornerShape(8.dp)) // Add rounded corners
-                .shadow(4.dp) // Add shadow
+                .clip(RoundedCornerShape(8.dp))
+                .shadow(4.dp)
         )
         Text(
             text = viewState.courseDetails.name,
@@ -125,6 +139,7 @@ fun ShowCourseDetailsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp)
+
         )
         Text(
             text = viewState.courseDetails.description,
@@ -141,8 +156,8 @@ fun ShowCourseDetailsScreen(
         Text(
             text = "Members: ${viewState.courseDetails.participantsNumber}/${viewState.courseDetails.participantsLimit}",
             color = if (viewState.courseDetails.participantsNumber < viewState.courseDetails.participantsLimit) {
-                Color(0xFF66BB6A) // Green
-            } else Color(0xFFD32F2F), // Red
+                Color(0xFF66BB6A)
+            } else Color(0xFFD32F2F),
             style = TextStyle(
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Left,
@@ -190,5 +205,65 @@ fun ShowCourseDetailsScreen(
                 )
             }
         }
+        Text(
+            text = "What you can learn",
+            color = Color.White,
+            style = TextStyle(
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Left,
+                fontSize = 30.sp
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+
+        )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            viewState.courseDetails.descriptionList.forEach { description ->
+                Row(modifier = Modifier.padding(vertical = 4.dp)) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "desc2",
+                        tint = Color.Green,
+                        modifier = Modifier.size(22.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = description,
+                        color = Color.White,
+                        style = TextStyle(
+                            fontWeight = FontWeight.Light,
+                            textAlign = TextAlign.Left,
+                            fontSize = 22.sp
+                        )
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Description",
+            color = Color.White,
+            style = TextStyle(
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Left,
+                fontSize = 30.sp
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+        )
+        Text(
+            text = viewState.courseDetails.descriptionDetails,
+            color = Color.White,
+            style = TextStyle(
+                fontWeight = FontWeight.Light,
+                textAlign = TextAlign.Left,
+                fontSize = 20.sp
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+        )
     }
 }

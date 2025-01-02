@@ -562,15 +562,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                 name = "placeholder",
                                 description = "placeholder",
                                 author = "placeholder",
-                                startDate = "placeholder",
-                                endDate = "placeholder",
                                 participantsNumber = 0,
                                 participantsLimit = 0,
                                 participants = emptyList(),
                                 category = Category.MUSIC,
                                 tags = emptyList(),
                                 imageUrl = "placeholder",
-                                sections = emptyList()
+                                sections = emptyList(),
+                                descriptionDetails = "placeholder",
+                                descriptionList = emptyList()
                             ),
                             val savedCourses: List<Course> = emptyList(),
                             val searchedCourses: List<CourseDto> = emptyList(),
