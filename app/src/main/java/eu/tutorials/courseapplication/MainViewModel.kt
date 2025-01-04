@@ -255,6 +255,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (enrolledCourses.isNotEmpty()){
             val savedCourses :List<Course> = courseService.getSavedCourses(enrolledCourses, token)
             _coursesState.value = _coursesState.value.copy(savedCourses= savedCourses)
+        }else{
+            _coursesState.value = _coursesState.value.copy(savedCourses= emptyList())
         }
     }
 
@@ -325,7 +327,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 loadStudentDataById(id)
                 loadCoursesDto()
                 _coursesState.value = _coursesState.value.copy(loading = false, isAuthenticated = true)
-
             } catch (e : Exception){
                 _coursesState.value = _coursesState.value.copy(
                     loading = false,
