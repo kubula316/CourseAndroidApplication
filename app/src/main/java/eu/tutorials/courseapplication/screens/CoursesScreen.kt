@@ -45,7 +45,7 @@ fun CoursesScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MagentaLightBackground) // Use the saved color
+            .background(MagentaLightBackground)
     ) {
         when {
             viewState.loading -> {
@@ -54,8 +54,8 @@ fun CoursesScreen(
                         .size(48.dp)
                         .align(Alignment.Center),
                     strokeWidth = 4.dp,
-                    strokeCap = StrokeCap.Round, // Rounded stroke for a modern feel
-                    color = MagentaPrimary // Use the saved primary color
+                    strokeCap = StrokeCap.Round,
+                    color = MagentaPrimary
                 )
             }
             viewState.error != null -> {
@@ -94,10 +94,10 @@ fun CourseItem(course: CourseDto, onCourseClick: (CourseDto) -> Unit) {
     Column(
         modifier = Modifier
             .padding(6.dp)
-            .clip(RoundedCornerShape(16.dp)) // Add a rounded corner for the card
-            .background(MagentaItemColor) // Card background color
+            .clip(RoundedCornerShape(16.dp))
+            .background(MagentaItemColor)
             .clickable { onCourseClick(course) }
-            .padding(8.dp), // Internal padding
+            .padding(8.dp),
         horizontalAlignment = Alignment.Start
     ) {
         Image(
@@ -111,7 +111,7 @@ fun CourseItem(course: CourseDto, onCourseClick: (CourseDto) -> Unit) {
         )
         Text(
             text = course.name,
-            color = MagentaPrimary, // Use the primary color
+            color = MagentaPrimary,
             style = TextStyle(
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,

@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +43,7 @@ fun CourseContentScreen(
     Box(
         modifier = modifier.background(
             Brush.horizontalGradient(
-                colors = listOf(Color(0xFFFF4081), Color(0xFF880E4F))
+                colors = listOf(Color(0xFF8132b1), Color(0xFF6A1B9A))
             )
         )
     ) {
@@ -124,7 +125,6 @@ fun SectionBlock(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-
             .clickable { isExpanded.value = !isExpanded.value }
             .padding(8.dp)
     ) {
@@ -137,12 +137,18 @@ fun SectionBlock(
                 fontSize = 24.sp
             ),
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth().padding(bottom = 8.dp)
         )
 
         if (isExpanded.value) {
             section.lessons.forEach { lesson ->
+                Divider(
+                    color = Color.White.copy(alpha = 0.3f),
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
                 LessonBlock(lesson, onLectureClick, enrolledCourse, onIconClick)
+
             }
         }
     }
@@ -183,7 +189,7 @@ fun LessonBlock(
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Completion Status",
-                    tint = if (enrolledCourse.completedLecturesId.contains(lesson.id)) Color.Gray else Color.White,
+                    tint = if (enrolledCourse.completedLecturesId.contains(lesson.id)) Color.Green else Color.Gray,
                     modifier = Modifier
                         .size(24.dp)
                         .clickable {
@@ -199,20 +205,20 @@ fun LessonBlock(
                     color = Color.White,
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp
+                        fontSize = 20.sp
                     ),
                     maxLines = 1
                 )
             }
             Text(
                 text = lesson.description,
-                color = Color(0xFFDDDDDD),
+                color = Color(0xFFBDBDBD), // jasny szary
                 style = TextStyle(
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Normal
                 ),
                 maxLines = 1,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 2.dp)
             )
         }
     }

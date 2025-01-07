@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import eu.tutorials.courseapplication.CourseDto
 import eu.tutorials.courseapplication.MainViewModel
+import eu.tutorials.courseapplication.ui.theme.MagentaItemColor
 import eu.tutorials.courseapplication.ui.theme.MagentaLightBackground
 
 @Composable
@@ -38,9 +40,11 @@ fun SearchTagScreen(
     modifier: Modifier = Modifier,
     onCourseClick: (CourseDto) -> Unit,
     viewState: MainViewModel.CoursesState
-){
-    Box(modifier = modifier.background(MagentaLightBackground)){
-        when{
+) {
+    Box(
+        modifier = modifier.background(MagentaLightBackground)
+    ) {
+        when {
             viewState.loading -> {
                 CircularProgressIndicator(
                     modifier = Modifier
@@ -51,8 +55,12 @@ fun SearchTagScreen(
                     color = Color.Magenta
                 )
             }
-            viewState.error != null -> { Text(text = "${viewState.error}")
-                println(viewState.error)
+            viewState.error != null -> {
+                Text(
+                    text = "${viewState.error}",
+                    color = Color.White,
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
             else -> {
                 SearchTagShowScreen(courses = viewState.searchedCourses, onCourseClick)
@@ -62,12 +70,15 @@ fun SearchTagScreen(
 }
 
 @Composable
-fun SearchTagShowScreen(courses: List<CourseDto>, onCategoryClick:(CourseDto) -> Unit) {
+fun SearchTagShowScreen(courses: List<CourseDto>, onCategoryClick: (CourseDto) -> Unit) {
     LazyVerticalGrid(
-        GridCells.Fixed(1), modifier = Modifier
-        .fillMaxSize()) {
-        items(courses){
-                course -> SearchTagCourseItem(course = course, onCategoryClick)
+        GridCells.Fixed(1),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 8.dp, vertical = 8.dp)
+    ) {
+        items(courses) { course ->
+            SearchTagCourseItem(course = course, onCategoryClick)
         }
     }
 }
@@ -76,9 +87,12 @@ fun SearchTagShowScreen(courses: List<CourseDto>, onCategoryClick:(CourseDto) ->
 fun SearchTagCourseItem(course: CourseDto, onCategoryClick: (CourseDto) -> Unit) {
     Column(
         modifier = Modifier
-            .padding(4.dp)
-            .clickable { onCategoryClick(course) },
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(8.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MagentaItemColor)
+            .clickable { onCategoryClick(course) }
+            .padding(8.dp),
+        horizontalAlignment = Alignment.Start
     ) {
         Image(
             painter = rememberAsyncImagePainter(course.imageUrl),
@@ -87,49 +101,47 @@ fun SearchTagCourseItem(course: CourseDto, onCategoryClick: (CourseDto) -> Unit)
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
-                .clip(RoundedCornerShape(32.dp))
+                .clip(RoundedCornerShape(16.dp))
         )
         Text(
             text = course.name,
-            color = Color.White,
+            color = Color(0xFF880E4F),
             style = TextStyle(
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Left,
-                fontSize = 24.sp
+                fontSize = 26.sp
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+        )
+        if (course.author != null) {
+            Text(
+                text = "By ${course.author}",
+                color = Color(0xFF6A1B9A), // Muted magenta for subtitle
+                style = TextStyle(
+                    fontWeight = FontWeight.Light,
+                    fontSize = 18.sp
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+            )
+        }
+        Text(
+            text = "Members: ${course.participantsNumber}/${course.participantsLimit}",
+            color = if (course.participantsNumber < course.participantsLimit) {
+                Color(0xFF388E3C) // Green for available spots
+            } else {
+                Color(0xFFD32F2F) // Red for full courses
+            },
+            style = TextStyle(
+                fontWeight = FontWeight.Normal,
+                fontSize = 18.sp
             ),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp)
         )
-        if (course.author != null){
-            Text(
-                text = course.author,
-                color = Color.LightGray,
-                style = TextStyle(
-                    fontWeight = FontWeight.Light,
-                    textAlign = TextAlign.Left,
-                    fontSize = 16.sp
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 2.dp)
-            )
-        }
-        Text(
-            text = "Members: ${course.participantsNumber}/${course.participantsLimit}",
-            color = if (course.participantsNumber < course.participantsLimit){
-                Color.Green} else Color.Red,
-            style = TextStyle(
-                fontWeight = FontWeight.Light,
-                textAlign = TextAlign.Left,
-                fontSize = 16.sp
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 2.dp)
-        )
-
-
     }
 }
 
