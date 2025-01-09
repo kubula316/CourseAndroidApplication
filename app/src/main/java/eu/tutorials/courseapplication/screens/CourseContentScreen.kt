@@ -212,7 +212,7 @@ fun LessonBlock(
             }
             Text(
                 text = lesson.description,
-                color = Color(0xFFBDBDBD), // jasny szary
+                color = Color(0xFFBDBDBD),
                 style = TextStyle(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal

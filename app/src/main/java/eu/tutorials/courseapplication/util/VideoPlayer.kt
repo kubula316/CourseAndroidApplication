@@ -23,7 +23,7 @@ fun VideoPlayer(viewModel: MainViewModel) {
         factory = { context ->
             PlayerView(context).apply {
                 player = exoPlayer
-                useController = true // Kontrolki odtwarzania (play, pause, itd.)
+                useController = true
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     600

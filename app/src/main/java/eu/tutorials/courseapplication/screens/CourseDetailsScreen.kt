@@ -130,7 +130,7 @@ fun ShowCourseDetailsScreen(
         )
         Text(
             text = viewState.courseDetails.name,
-            color = Color(0xFF8E24AA), // Magenta for title
+            color = Color(0xFF8E24AA),
             style = TextStyle(
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Left,

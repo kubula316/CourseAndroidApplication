@@ -42,7 +42,7 @@ fun SavedCoursesScreen(
     onDeleteClick: (String) -> Unit,
     context: Context
 ) {
-    Box(modifier = modifier.background(Color(0xFF7B1FA2))) { // Magenta background
+    Box(modifier = modifier.background(Color(0xFF7B1FA2))) {
         when {
             viewState.loading -> {
                 CircularProgressIndicator(

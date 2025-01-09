@@ -117,7 +117,7 @@ fun SearchTagCourseItem(course: CourseDto, onCategoryClick: (CourseDto) -> Unit)
         if (course.author != null) {
             Text(
                 text = "By ${course.author}",
-                color = Color(0xFF6A1B9A), // Muted magenta for subtitle
+                color = Color(0xFF6A1B9A),
                 style = TextStyle(
                     fontWeight = FontWeight.Light,
                     fontSize = 18.sp
