@@ -1,15 +1,8 @@
 Android Application for Students Connected to a Spring Web Application
 
-GITHUB LINKS TO SPRING APPLICATIONS
+GITHUB LINK TO SPRING APPLICATION
 
-https://github.com/kubula316/StudentsService
-
-https://github.com/kubula316/CoursesService
-
-https://github.com/kubula316/EurekaService
-
-https://github.com/kubula316/GatewayService
-
+https://github.com/kubula316/StudentsAndCoursesApplication
 
 The application utilizes all the services of the Spring web application.
 
